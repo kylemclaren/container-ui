@@ -1,0 +1,89 @@
+name: ContainersUI
+
+options:
+  bundleIdPrefix: dev.kylemclaren
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+  groupSortPosition: top
+  generateEmptyDirectories: true
+
+settings:
+  base:
+    # Swift 5 language mode (async/await + Observation still fully available).
+    # Avoids Swift 6 strict data-race errors; bump to "6.0" once you've built locally.
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    # Fill in your Apple Developer Team ID to enable automatic signing,
+    # or sign manually in Xcode. Leaving this empty signs with "Sign to Run Locally".
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+    ENABLE_HARDENED_RUNTIME: YES
+    GCC_TREAT_WARNINGS_AS_ERRORS: NO
+    SWIFT_TREAT_WARNINGS_AS_ERRORS: NO
+
+targets:
+  ContainersUI:
+    type: application
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - App
+      - Core
+      - Features
+      - DesignSystem
+      - path: Resources/Assets.xcassets
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.kylemclaren.ContainersUI
+        PRODUCT_NAME: ContainersUI
+        CODE_SIGN_ENTITLEMENTS: Resources/ContainersUI.entitlements
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        COMBINE_HIDPI_IMAGES: YES
+        ENABLE_PREVIEWS: YES
+        LD_RUNPATH_SEARCH_PATHS:
+          - "$(inherited)"
+          - "@executable_path/../Frameworks"
+    info:
+      path: Resources/Info.plist
+      properties:
+        CFBundleDisplayName: Containers
+        CFBundleName: ContainersUI
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
+        LSApplicationCategoryType: public.app-category.developer-tools
+        NSHumanReadableCopyright: "A SwiftUI GUI for Apple's container tool."
+        # Menu-bar/dock app (not an agent).
+        LSUIElement: false
+
+  ContainersUITests:
+    type: bundle.unit-test
+    platform: macOS
+    deploymentTarget: "14.0"
+    # Host-less logic tests: the bundle compiles the UI-independent `Core`
+    # sources directly (rather than @testable-importing the app), so
+    # `xcodebuild test` runs fast and headless with no GUI host.
+    sources:
+      - Core
+      - Tests
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.kylemclaren.ContainersUITests
+        GENERATE_INFOPLIST_FILE: YES
+
+schemes:
+  ContainersUI:
+    build:
+      targets:
+        ContainersUI: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - ContainersUITests
+    archive:
+      config: Release

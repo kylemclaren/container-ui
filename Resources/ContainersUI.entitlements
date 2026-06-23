@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!--
+	  ContainersUI shells out to the `container` CLI (/usr/local/bin/container),
+	  which in turn talks to the container-apiserver launchd service over XPC.
+	  The App Sandbox blocks spawning arbitrary executables and that XPC path,
+	  so the app runs UNSANDBOXED. Distribute via Developer ID + notarization
+	  (Hardened Runtime is enabled in build settings), not the Mac App Store.
+	-->
+	<key>com.apple.security.app-sandbox</key>
+	<false/>
+</dict>
+</plist>

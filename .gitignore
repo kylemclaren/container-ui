@@ -1,0 +1,27 @@
+# macOS
+.DS_Store
+
+# Xcode
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+*.xcworkspace/xcuserdata/
+xcuserdata/
+*.xcuserstate
+DerivedData/
+build/
+.build/
+
+# XcodeGen generates the project; it is not checked in.
+ContainersUI.xcodeproj/
+
+# Swift Package Manager
+.swiftpm/
+Package.resolved
+
+# Misc
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
