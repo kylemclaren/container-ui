@@ -3,6 +3,7 @@ import SwiftUI
 @main
 struct ContainerUIApp: App {
     @State private var app = AppModel()
+    @StateObject private var updater = UpdaterController()
 
     var body: some Scene {
         // A single main window so the menu bar can re-open it by id.
@@ -13,6 +14,10 @@ struct ContainerUIApp: App {
         }
         .windowToolbarStyle(.unified(showsTitle: true))
         .commands {
+            // Adds "Check for Updates…" under the app menu, next to About.
+            CommandGroup(after: .appInfo) {
+                CheckForUpdatesView(updater: updater)
+            }
             CommandGroup(after: .toolbar) {
                 Button("Refresh") {
                     app.requestRefresh()
@@ -36,6 +41,7 @@ struct ContainerUIApp: App {
         Settings {
             SettingsView()
                 .environment(app)
+                .environmentObject(updater)
         }
     }
 }

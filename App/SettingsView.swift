@@ -3,6 +3,7 @@ import AppKit
 
 struct SettingsView: View {
     @Environment(AppModel.self) private var app
+    @EnvironmentObject private var updater: UpdaterController
 
     var body: some View {
         @Bindable var app = app
@@ -40,9 +41,24 @@ struct SettingsView: View {
                     .font(.callout)
                     .foregroundStyle(.secondary)
             }
+
+            Section("Updates") {
+                Toggle("Automatically check for updates", isOn: Binding(
+                    get: { updater.automaticallyChecksForUpdates },
+                    set: { updater.automaticallyChecksForUpdates = $0 }
+                ))
+                HStack {
+                    Button("Check for Updates…") { updater.checkForUpdates() }
+                        .disabled(!updater.canCheckForUpdates)
+                    Spacer()
+                }
+                Text("Updates are downloaded from GitHub Releases and verified with a built-in signing key.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            }
         }
         .formStyle(.grouped)
-        .frame(width: 500, height: 320)
+        .frame(width: 500, height: 400)
     }
 
     private var statusText: String {

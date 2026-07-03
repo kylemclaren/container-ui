@@ -25,6 +25,9 @@ jobs:
       APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
       NOTARY_APPLE_ID: ${{ secrets.APPLE_ID }}
       NOTARY_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+      # Sparkle EdDSA private key (base64). Optional — when absent the release
+      # still ships a DMG, just without an appcast for auto-update.
+      SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
     steps:
       - uses: actions/checkout@v4
 
@@ -83,6 +86,9 @@ jobs:
           echo "Imported signing identity: $IDENTITY"
 
       - name: Build & package DMG
+        env:
+          # Monotonic CFBundleVersion so Sparkle can order releases.
+          BUILD_NUMBER: ${{ github.run_number }}
         run: scripts/build-release.sh
 
       - name: Notarize & staple
@@ -98,6 +104,44 @@ jobs:
           cd dist
           shasum -a 256 *.dmg > SHA256SUMS.txt
           cat SHA256SUMS.txt
+
+      - name: Generate Sparkle appcast
+        if: env.SPARKLE_ED_PRIVATE_KEY != ''
+        run: |
+          set -euo pipefail
+          SPARKLE_VERSION=2.9.4
+          curl -fsSL "https://github.com/sparkle-project/Sparkle/releases/download/${SPARKLE_VERSION}/Sparkle-${SPARKLE_VERSION}.tar.xz" -o /tmp/sparkle.tar.xz
+          mkdir -p /tmp/sparkle && tar -xf /tmp/sparkle.tar.xz -C /tmp/sparkle
+          SIGN_UPDATE="$(find /tmp/sparkle -name sign_update -type f | head -1)"
+
+          KEY_FILE="$(mktemp)"
+          printf '%s' "$SPARKLE_ED_PRIVATE_KEY" > "$KEY_FILE"
+          DMG="dist/ContainerUI-${VERSION}.dmg"
+          # e.g. sparkle:edSignature="…" length="…"
+          SIG="$("$SIGN_UPDATE" "$DMG" --ed-key-file "$KEY_FILE")"
+          rm -f "$KEY_FILE"
+
+          PUBDATE="$(date -u '+%a, %d %b %Y %H:%M:%S +0000')"
+          DOWNLOAD_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/v${VERSION}/ContainerUI-${VERSION}.dmg"
+          {
+            echo '<?xml version="1.0" encoding="utf-8"?>'
+            echo '<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">'
+            echo '  <channel>'
+            echo '    <title>ContainerUI</title>'
+            echo '    <item>'
+            echo "      <title>${VERSION}</title>"
+            echo "      <pubDate>${PUBDATE}</pubDate>"
+            echo "      <sparkle:version>${GITHUB_RUN_NUMBER}</sparkle:version>"
+            echo "      <sparkle:shortVersionString>${VERSION}</sparkle:shortVersionString>"
+            echo '      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>'
+            echo "      <description><![CDATA[<p>ContainerUI ${VERSION}. See the <a href=\"https://github.com/${GITHUB_REPOSITORY}/releases/tag/v${VERSION}\">release notes</a>.</p>]]></description>"
+            echo "      <enclosure url=\"${DOWNLOAD_URL}\" ${SIG} type=\"application/octet-stream\"/>"
+            echo '    </item>'
+            echo '  </channel>'
+            echo '</rss>'
+          } > dist/appcast.xml
+          echo "----- appcast.xml -----"
+          cat dist/appcast.xml
 
       - name: Compose release notes
         run: |
@@ -134,6 +178,7 @@ jobs:
           path: |
             dist/*.dmg
             dist/SHA256SUMS.txt
+            dist/appcast.xml
 
       - name: Publish GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
@@ -145,3 +190,4 @@ jobs:
           files: |
             dist/*.dmg
             dist/SHA256SUMS.txt
+            dist/appcast.xml

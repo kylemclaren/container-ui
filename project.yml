@@ -8,6 +8,11 @@ options:
   groupSortPosition: top
   generateEmptyDirectories: true
 
+packages:
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    exactVersion: 2.9.4
+
 settings:
   base:
     # Swift 5 language mode (async/await + Observation still fully available).
@@ -34,6 +39,8 @@ targets:
       - Features
       - DesignSystem
       - path: Resources/Assets.xcassets
+    dependencies:
+      - package: Sparkle
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: dev.kylemclaren.ContainerUI

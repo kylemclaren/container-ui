@@ -26,6 +26,10 @@ APP_NAME="ContainerUI"     # PRODUCT_NAME → ContainerUI.app
 VOLUME_NAME="ContainerUI"
 
 VERSION="${VERSION:?set VERSION (e.g. VERSION=1.2.0)}"
+# Monotonic build number stamped into CFBundleVersion. Sparkle compares this
+# (sparkle:version) to decide if an update is newer, so it must strictly
+# increase across releases — CI passes the run number; local builds default to 1.
+BUILD_NUMBER="${BUILD_NUMBER:-1}"
 SIGNING_IDENTITY="${SIGNING_IDENTITY:-}"
 TEAM_ID="${TEAM_ID:-}"
 
@@ -52,6 +56,7 @@ if [[ -n "$SIGNING_IDENTITY" ]]; then
     -configuration Release \
     -archivePath "$ARCHIVE" \
     MARKETING_VERSION="$VERSION" \
+    CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
     CODE_SIGN_STYLE=Manual \
     CODE_SIGN_IDENTITY="$SIGNING_IDENTITY" \
     DEVELOPMENT_TEAM="$TEAM_ID"
@@ -81,6 +86,7 @@ else
     -configuration Release \
     -archivePath "$ARCHIVE" \
     MARKETING_VERSION="$VERSION" \
+    CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
     CODE_SIGNING_ALLOWED=NO
   mkdir -p "$EXPORT_DIR"
   cp -R "$ARCHIVE/Products/Applications/$APP_NAME.app" "$APP_PATH"
