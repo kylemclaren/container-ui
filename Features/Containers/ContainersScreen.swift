@@ -150,6 +150,7 @@ struct ContainersScreen: View {
                                     model.selectedID = (model.selectedID == container.id) ? nil : container.id
                                 }
                             },
+                            onConsole: { app.openConsole(container) },
                             onStart: { Task { await model.start(container) } },
                             onStop: { Task { await model.stop(container) } },
                             onRestart: { Task { await model.restart(container) } },

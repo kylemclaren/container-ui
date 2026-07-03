@@ -153,6 +153,7 @@ struct MenuBarContent: View {
                     memory: statsByID[container.id]?.memoryUsageBytes.map(Formatting.bytes),
                     busy: busyIDs.contains(container.id),
                     onOpen: { inspect(container.id) },
+                    onConsole: { app.openConsole(container); dismiss() },
                     onStart: { run(container.id) { await app.startContainer($0) } },
                     onStop: { run(container.id) { await app.stopContainer($0) } }
                 )
@@ -252,6 +253,7 @@ private struct MenuContainerRow: View {
     let memory: String?
     let busy: Bool
     var onOpen: () -> Void
+    var onConsole: () -> Void
     var onStart: () -> Void
     var onStop: () -> Void
 
@@ -290,6 +292,8 @@ private struct MenuContainerRow: View {
                 if busy {
                     ProgressView().controlSize(.small).frame(width: 24, height: 24)
                 } else if container.isRunning {
+                    CircleIconButton(systemImage: "terminal", tint: .accentColor, help: "Open console", size: 24, action: onConsole)
+                        .opacity(hovering ? 1 : 0.6)
                     CircleIconButton(systemImage: "stop.fill", tint: .orange, help: "Stop", size: 24, action: onStop)
                         .opacity(hovering ? 1 : 0.6)
                 } else {

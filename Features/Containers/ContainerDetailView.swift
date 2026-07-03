@@ -7,6 +7,8 @@ struct ContainerDetailView: View {
     /// Rolling CPU/memory series for the live chart (empty hides the chart).
     var statsPoints: [StatsPoint] = []
 
+    @Environment(AppModel.self) private var app
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
@@ -70,7 +72,15 @@ struct ContainerDetailView: View {
                 Spacer(minLength: 0)
                 CopyButton(text: container.id)
             }
-            StatusBadge(state: container.state)
+            HStack(spacing: 10) {
+                StatusBadge(state: container.state)
+                if container.isRunning {
+                    Spacer(minLength: 0)
+                    PillButton(style: .accent) { app.openConsole(container) } label: {
+                        Label("Console", systemImage: "terminal")
+                    }
+                }
+            }
         }
     }
 

@@ -20,6 +20,17 @@ struct RootView: View {
         }
         .animation(Theme.Motion.smooth, value: app.paletteVisible)
         .task { app.startMonitoring() }
+        .alert(
+            "Couldn’t open console",
+            isPresented: Binding(
+                get: { app.consoleError != nil },
+                set: { if !$0 { app.consoleError = nil } }
+            )
+        ) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(app.consoleError ?? "")
+        }
     }
 }
 

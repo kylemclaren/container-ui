@@ -29,9 +29,20 @@ struct SettingsView: View {
                     .font(.callout)
                     .foregroundStyle(statusColor)
             }
+
+            Section("Console") {
+                Picker("Open console in", selection: $app.preferredTerminal) {
+                    ForEach(ConsoleOpener.installedTerminals()) { terminal in
+                        Text(terminal.displayName).tag(terminal)
+                    }
+                }
+                Text("One-click console opens an interactive shell in this terminal app.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            }
         }
         .formStyle(.grouped)
-        .frame(width: 500, height: 220)
+        .frame(width: 500, height: 320)
     }
 
     private var statusText: String {

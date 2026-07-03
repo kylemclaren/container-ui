@@ -65,9 +65,19 @@ final class AppModel {
 
     static let pathKey = "containerExecutablePath"
 
+    /// Which terminal app the one-click console opens (persisted).
+    var preferredTerminal: TerminalApp {
+        didSet { UserDefaults.standard.set(preferredTerminal.rawValue, forKey: Self.terminalKey) }
+    }
+
+    static let terminalKey = "preferredTerminal"
+
     init() {
         executablePath = UserDefaults.standard.string(forKey: Self.pathKey) ?? ""
+        preferredTerminal = UserDefaults.standard.string(forKey: Self.terminalKey)
+            .flatMap(TerminalApp.init(rawValue:)) ?? .systemDefault
         resolve()
+        ConsoleOpener.sweepStaleScripts()
     }
 
     var containerService: ContainerService? { cli.map(ContainerService.init) }
@@ -138,6 +148,11 @@ final class AppModel {
             Task { await startContainer(id) }
         case .stopContainer(let id):
             Task { await stopContainer(id) }
+        case .openConsole(let id):
+            // Global: needs no screen — resolve the container and launch.
+            if let container = containers.first(where: { $0.id == id }) {
+                openConsole(container)
+            }
         case .runContainer, .containerLogs, .inspectContainer:
             select(.containers)
             pendingIntent = intent
@@ -259,6 +274,31 @@ final class AppModel {
         guard let containerService else { return }
         _ = try? await containerService.stop(ids: [id])
         await refreshContainers()
+    }
+
+    // MARK: One-click console
+
+    /// The user-visible error from the last console-open attempt, if any.
+    var consoleError: String?
+
+    /// Opens an interactive shell into `container` in the preferred terminal.
+    func openConsole(_ container: Container) {
+        guard container.isRunning else {
+            consoleError = "“\(container.name)” isn’t running."
+            return
+        }
+        guard let cli else {
+            consoleError = "The container CLI couldn’t be found."
+            return
+        }
+        ConsoleOpener.openConsole(
+            preferred: preferredTerminal,
+            containerPath: cli.executableURL.path,
+            id: container.id,
+            name: container.name
+        ) { [weak self] message in
+            self?.consoleError = message
+        }
     }
 
     func select(_ item: SidebarItem) {

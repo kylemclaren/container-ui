@@ -12,6 +12,7 @@ enum AppIntent: Equatable, Hashable, Sendable {
     case stopContainer(id: String)
     case containerLogs(id: String)
     case inspectContainer(id: String)
+    case openConsole(id: String)
     case runContainer
     // Images
     case runImage(reference: String)
@@ -119,6 +120,13 @@ enum PaletteCatalog {
                 keywords: container.imageReference, intent: .inspectContainer(id: container.id)
             ))
             if container.isRunning {
+                out.append(.init(
+                    id: "container.console.\(container.id)", title: "Console: \(container.name)",
+                    subtitle: "Open a shell in your terminal",
+                    systemImage: "terminal.fill", category: .container,
+                    keywords: "\(container.imageReference) shell ssh exec attach",
+                    intent: .openConsole(id: container.id)
+                ))
                 out.append(.init(
                     id: "container.stop.\(container.id)", title: "Stop \(container.name)", subtitle: nil,
                     systemImage: "stop.fill", category: .container,

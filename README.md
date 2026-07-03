@@ -88,7 +88,7 @@ SwiftUI Views  ──▶  @Observable ViewModels  ──▶  Services  ──▶
 
 | Area | Capabilities |
 |------|--------------|
-| **Containers** | List (all/running), **live CPU/memory charts** with real CPU % derived from counter deltas, inspect, start/stop/restart/kill, delete, prune, streaming logs, exec, and a full **Run** form (shell-style quoting supported). |
+| **Containers** | List (all/running), **live CPU/memory charts** with real CPU % derived from counter deltas, inspect, start/stop/restart/kill, delete, prune, streaming logs, exec, a full **Run** form (shell-style quoting supported), and a **one-click console** that opens an interactive shell in your terminal app (Terminal, iTerm2, Ghostty, Warp, kitty, Alacritty, WezTerm — pick in Settings). |
 | **Images** | List, inspect (config/env/layers/platforms), **Pull** with streaming progress, **run a container straight from an image**, tag, delete, prune. |
 | **Volumes** | List, inspect, create (with size/format), delete, prune. |
 | **Networks** | List, inspect (subnets/gateway), create (NAT or host-only, custom subnets), delete, prune — with the built-in network protected. |

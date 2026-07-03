@@ -9,6 +9,7 @@ struct ContainerRow: View {
     let isBusy: Bool
 
     var onSelect: () -> Void
+    var onConsole: () -> Void
     var onStart: () -> Void
     var onStop: () -> Void
     var onRestart: () -> Void
@@ -100,6 +101,7 @@ struct ContainerRow: View {
                 ProgressView().controlSize(.small).frame(width: Theme.Metrics.controlHeight)
             } else if showActions {
                 if container.isRunning {
+                    CircleIconButton(systemImage: "terminal", help: "Open console", action: onConsole)
                     CircleIconButton(systemImage: "stop.fill", tint: .orange, help: "Stop", action: onStop)
                     CircleIconButton(systemImage: "arrow.clockwise", help: "Restart", action: onRestart)
                 } else {
@@ -124,6 +126,8 @@ struct ContainerRow: View {
     /// Shared contents for the hover ellipsis menu and the row's right-click menu.
     @ViewBuilder private var menuItems: some View {
         if container.isRunning {
+            Button("Open console", systemImage: "terminal", action: onConsole)
+            Divider()
             Button("Stop", systemImage: "stop.fill", action: onStop)
             Button("Restart", systemImage: "arrow.clockwise", action: onRestart)
             Button("Kill", systemImage: "bolt.fill", action: onKill)
