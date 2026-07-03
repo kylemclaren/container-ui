@@ -156,7 +156,7 @@ final class AppModel {
         case .runContainer, .containerLogs, .inspectContainer:
             select(.containers)
             pendingIntent = intent
-        case .pullImage, .runImage, .inspectImage:
+        case .pullImage, .buildImage, .runImage, .inspectImage:
             select(.images)
             pendingIntent = intent
         case .createVolume, .inspectVolume:

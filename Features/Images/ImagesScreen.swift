@@ -5,6 +5,7 @@ struct ImagesScreen: View {
     @Environment(AppModel.self) private var app
 
     @State private var showPull = false
+    @State private var showBuild = false
     @State private var tagTarget: ContainerImage?
     @State private var deleteTarget: ContainerImage?
     @State private var runTarget: ContainerImage?
@@ -19,6 +20,9 @@ struct ImagesScreen: View {
             SearchField(text: $model.searchText, prompt: "Search images")
             CircleIconButton(systemImage: "arrow.clockwise", help: "Refresh") {
                 Task { await model.load() }
+            }
+            PillButton { showBuild = true } label: {
+                Label("Build", systemImage: "hammer.fill")
             }
             PillButton(style: .accent) { showPull = true } label: {
                 Label("Pull", systemImage: "arrow.down.circle.fill")
@@ -41,6 +45,9 @@ struct ImagesScreen: View {
         }
         .sheet(isPresented: $showPull) {
             PullImageView(service: model.service) { await model.load() }
+        }
+        .sheet(isPresented: $showBuild) {
+            BuildImageView(service: model.service) { await model.load() }
         }
         .sheet(item: $tagTarget) { image in
             TagImageView(service: model.service, source: image.reference) { await model.load() }
@@ -73,6 +80,8 @@ struct ImagesScreen: View {
         switch intent {
         case .pullImage:
             showPull = true
+        case .buildImage:
+            showBuild = true
         case .runImage(let reference):
             guard let image = model.images.first(where: { $0.reference == reference }) else {
                 if listLoaded { app.clearIntent() }

@@ -78,6 +78,40 @@ struct ArgumentBuilderTests {
         #expect(ImageService.pruneArguments() == ["image", "prune"])
     }
 
+    @Test func imageBuildMinimal() {
+        let options = BuildOptions(contextDirectory: ".")
+        #expect(ImageService.buildArguments(options) == ["build", "--progress", "plain", "."])
+    }
+
+    @Test func imageBuildFull() {
+        let options = BuildOptions(
+            contextDirectory: "/src/app",
+            tag: "myapp:latest",
+            dockerfilePath: "/src/app/Dockerfile",
+            buildArgs: ["VERSION=1.2.3", "ENV=prod"],
+            labels: ["team=infra"],
+            noCache: true,
+            target: "builder"
+        )
+        #expect(ImageService.buildArguments(options) == [
+            "build", "--progress", "plain",
+            "--tag", "myapp:latest",
+            "--file", "/src/app/Dockerfile",
+            "--build-arg", "VERSION=1.2.3",
+            "--build-arg", "ENV=prod",
+            "--label", "team=infra",
+            "--no-cache",
+            "--target", "builder",
+            "/src/app",
+        ])
+    }
+
+    @Test func imageBuildOmitsEmptyOptionalFlags() {
+        // Empty strings are treated as "unset" and must not emit bare flags.
+        let options = BuildOptions(contextDirectory: "ctx", tag: "", dockerfilePath: "", target: "")
+        #expect(ImageService.buildArguments(options) == ["build", "--progress", "plain", "ctx"])
+    }
+
     @Test func system() {
         #expect(SystemService.statusArguments() == ["system", "status", "--format", "json"])
         #expect(SystemService.dfArguments() == ["system", "df", "--format", "json"])

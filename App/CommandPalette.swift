@@ -18,6 +18,7 @@ enum AppIntent: Equatable, Hashable, Sendable {
     case runImage(reference: String)
     case inspectImage(id: String)
     case pullImage
+    case buildImage
     // Volumes / networks
     case inspectVolume(name: String)
     case createVolume
@@ -77,6 +78,10 @@ enum PaletteCatalog {
         out.append(.init(
             id: "action.pull", title: "Pull an image…", subtitle: "Download from a registry",
             systemImage: "arrow.down.circle.fill", category: .action, keywords: "fetch download", intent: .pullImage
+        ))
+        out.append(.init(
+            id: "action.build", title: "Build an image…", subtitle: "Build from a Dockerfile",
+            systemImage: "hammer.fill", category: .action, keywords: "dockerfile compile make", intent: .buildImage
         ))
         out.append(.init(
             id: "action.createVolume", title: "Create a volume…", subtitle: nil,
