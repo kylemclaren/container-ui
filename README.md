@@ -21,8 +21,6 @@ Run and inspect Linux containers, manage images, volumes & networks, and control
   <img src="docs/media/containers-light.png" alt="ContainerUI showing the Containers screen with live stats" width="900" />
 </picture>
 
-<sub>The screenshot follows your GitHub theme — light or dark.</sub>
-
 </div>
 
 ---
