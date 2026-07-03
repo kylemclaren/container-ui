@@ -14,7 +14,6 @@ struct ContainerUIApp: App {
         }
         .windowToolbarStyle(.unified(showsTitle: true))
         .commands {
-            // Adds "Check for Updates…" under the app menu, next to About.
             CommandGroup(after: .appInfo) {
                 CheckForUpdatesView(updater: updater)
             }

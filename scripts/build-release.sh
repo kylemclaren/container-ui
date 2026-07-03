@@ -26,9 +26,7 @@ APP_NAME="ContainerUI"     # PRODUCT_NAME → ContainerUI.app
 VOLUME_NAME="ContainerUI"
 
 VERSION="${VERSION:?set VERSION (e.g. VERSION=1.2.0)}"
-# Monotonic build number stamped into CFBundleVersion. Sparkle compares this
-# (sparkle:version) to decide if an update is newer, so it must strictly
-# increase across releases — CI passes the run number; local builds default to 1.
+# Monotonic CFBundleVersion; Sparkle requires it to strictly increase.
 BUILD_NUMBER="${BUILD_NUMBER:-1}"
 SIGNING_IDENTITY="${SIGNING_IDENTITY:-}"
 TEAM_ID="${TEAM_ID:-}"

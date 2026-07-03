@@ -28,8 +28,6 @@
 	<false/>
 	<key>NSHumanReadableCopyright</key>
 	<string>A SwiftUI GUI for Apple's container tool.</string>
-	<!-- Sparkle auto-update. The feed is the appcast.xml asset attached to the
-	     latest GitHub Release; `releases/latest/download/` is a stable redirect. -->
 	<key>SUFeedURL</key>
 	<string>https://github.com/kylemclaren/container-ui/releases/latest/download/appcast.xml</string>
 	<key>SUPublicEDKey</key>

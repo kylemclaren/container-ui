@@ -25,8 +25,7 @@ jobs:
       APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
       NOTARY_APPLE_ID: ${{ secrets.APPLE_ID }}
       NOTARY_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-      # Sparkle EdDSA private key (base64). Optional — when absent the release
-      # still ships a DMG, just without an appcast for auto-update.
+      # Optional — when absent the release ships without an appcast.
       SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
     steps:
       - uses: actions/checkout@v4
@@ -87,7 +86,6 @@ jobs:
 
       - name: Build & package DMG
         env:
-          # Monotonic CFBundleVersion so Sparkle can order releases.
           BUILD_NUMBER: ${{ github.run_number }}
         run: scripts/build-release.sh
 
@@ -119,7 +117,6 @@ jobs:
           KEY_FILE="$(mktemp)"
           printf '%s' "$SPARKLE_ED_PRIVATE_KEY" > "$KEY_FILE"
           DMG="dist/ContainerUI-${VERSION}.dmg"
-          # e.g. sparkle:edSignature="…" length="…"
           SIG="$("$SIGN_UPDATE" "$DMG" --ed-key-file "$KEY_FILE")"
           rm -f "$KEY_FILE"
 
