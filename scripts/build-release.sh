@@ -16,14 +16,14 @@
 # signing disabled and copied straight out of the archive — handy for CI smoke
 # builds, but Gatekeeper will quarantine it on other machines.
 #
-# Output: dist/Containers-<VERSION>.dmg
+# Output: dist/ContainerUI-<VERSION>.dmg
 #
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-SCHEME="ContainersUI"
-APP_NAME="ContainersUI"     # PRODUCT_NAME → ContainersUI.app
-VOLUME_NAME="Containers"
+SCHEME="ContainerUI"
+APP_NAME="ContainerUI"     # PRODUCT_NAME → ContainerUI.app
+VOLUME_NAME="ContainerUI"
 
 VERSION="${VERSION:?set VERSION (e.g. VERSION=1.2.0)}"
 SIGNING_IDENTITY="${SIGNING_IDENTITY:-}"

@@ -11,7 +11,7 @@
 #   scripts/package-dmg.sh <path/to/App.app> <output.dmg> [volume-name]
 #
 # Example:
-#   scripts/package-dmg.sh build/export/ContainersUI.app dist/Containers-1.2.0.dmg "Containers"
+#   scripts/package-dmg.sh build/export/ContainerUI.app dist/ContainerUI-1.2.0.dmg "ContainerUI"
 #
 set -euo pipefail
 

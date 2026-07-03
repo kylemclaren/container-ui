@@ -102,19 +102,19 @@ jobs:
       - name: Compose release notes
         run: |
           {
-            echo "## Containers ${VERSION}"
+            echo "## ContainerUI ${VERSION}"
             echo
             if [ "${NOTARIZED:-0}" = "1" ]; then
-              echo "Signed with Developer ID and notarized by Apple — download the DMG, drag **Containers** to Applications, and open it."
+              echo "Signed with Developer ID and notarized by Apple — download the DMG, drag **ContainerUI** to Applications, and open it."
             elif [ -n "${SIGNING_IDENTITY:-}" ]; then
               echo "Signed with Developer ID but **not notarized**. On first launch, right-click the app and choose **Open**, or run:"
               echo '```'
-              echo 'xattr -dr com.apple.quarantine /Applications/ContainersUI.app'
+              echo 'xattr -dr com.apple.quarantine /Applications/ContainerUI.app'
               echo '```'
             else
               echo "> ⚠️ **Unsigned build.** macOS Gatekeeper will block it until you clear the quarantine flag:"
               echo '```'
-              echo 'xattr -dr com.apple.quarantine /Applications/ContainersUI.app'
+              echo 'xattr -dr com.apple.quarantine /Applications/ContainerUI.app'
               echo '```'
             fi
             echo
@@ -130,7 +130,7 @@ jobs:
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Containers-${{ steps.version.outputs.version }}
+          name: ContainerUI-${{ steps.version.outputs.version }}
           path: |
             dist/*.dmg
             dist/SHA256SUMS.txt

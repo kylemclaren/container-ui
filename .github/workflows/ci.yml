@@ -32,7 +32,7 @@ jobs:
         run: |
           set -o pipefail
           xcodebuild test \
-            -scheme ContainersUI \
+            -scheme ContainerUI \
             -configuration Debug \
             -destination 'platform=macOS' \
             -resultBundlePath build/TestResults.xcresult \

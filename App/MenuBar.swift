@@ -167,7 +167,7 @@ struct MenuBarContent: View {
 
     private var footer: some View {
         HStack(spacing: 4) {
-            MenuActionButton(title: "Open Containers", systemImage: "macwindow") {
+            MenuActionButton(title: "Open ContainerUI", systemImage: "macwindow") {
                 NSApp.activate(ignoringOtherApps: true)
                 openWindow(id: "main")
                 dismiss()

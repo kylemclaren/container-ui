@@ -14,7 +14,7 @@ build/
 dist/
 
 # XcodeGen generates the project; it is not checked in.
-ContainersUI.xcodeproj/
+ContainerUI.xcodeproj/
 
 # Swift Package Manager
 .swiftpm/

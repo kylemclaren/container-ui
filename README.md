@@ -1,11 +1,11 @@
 <h1>
-  <img alt="Containers" src="https://github.com/apple/container/raw/main/docs/assets/landing-movie.gif" width="0" height="0" />
-  Containers
+  <img alt="ContainerUI" src="https://github.com/apple/container/raw/main/docs/assets/landing-movie.gif" width="0" height="0" />
+  ContainerUI
 </h1>
 
 A native **SwiftUI** desktop app for managing [Apple's `container`](https://github.com/apple/container) tool — run and inspect Linux containers, browse images, and control the system service, all from a polished Mac UI.
 
-Containers is a thin, robust GUI **on top of the `container` command-line tool**. It shells out to the supported CLI and decodes its `--format json` output, so it stays compatible across `container` releases instead of binding to internal APIs.
+ContainerUI is a thin, robust GUI **on top of the `container` command-line tool**. It shells out to the supported CLI and decodes its `--format json` output, so it stays compatible across `container` releases instead of binding to internal APIs.
 
 ---
 
@@ -23,22 +23,22 @@ This repo doesn't check in an `.xcodeproj`; it's generated from [`project.yml`](
 
 ```bash
 brew install xcodegen          # one-time
-xcodegen generate              # creates ContainersUI.xcodeproj
-open ContainersUI.xcodeproj    # then Run (⌘R) in Xcode
+xcodegen generate              # creates ContainerUI.xcodeproj
+open ContainerUI.xcodeproj    # then Run (⌘R) in Xcode
 ```
 
 Or from the command line:
 
 ```bash
 xcodegen generate
-xcodebuild -scheme ContainersUI -configuration Debug build
+xcodebuild -scheme ContainerUI -configuration Debug build
 ```
 
 ### Tests
 
 ```bash
 xcodegen generate
-xcodebuild -scheme ContainersUI -destination 'platform=macOS' test
+xcodebuild -scheme ContainerUI -destination 'platform=macOS' test
 ```
 
 The unit tests are **host-less logic tests**: the test bundle compiles the UI-independent `Core/` sources directly and exercises them with a mock command runner and recorded CLI JSON fixtures — no live `container` backend, no GUI launch. They cover JSON decoding, exact argv construction, error classification, and formatting.
@@ -99,7 +99,7 @@ project.yml     XcodeGen project definition
 
 ## Signing & distribution
 
-The app runs **unsandboxed** (see `Resources/ContainersUI.entitlements`) because it spawns `/usr/local/bin/container`, which talks to a launchd service over XPC — the App Sandbox blocks that. Distribute with **Developer ID + notarization** (Hardened Runtime is enabled), not the Mac App Store. Set your `DEVELOPMENT_TEAM` in `project.yml`, or sign "to run locally" in Xcode for development.
+The app runs **unsandboxed** (see `Resources/ContainerUI.entitlements`) because it spawns `/usr/local/bin/container`, which talks to a launchd service over XPC — the App Sandbox blocks that. Distribute with **Developer ID + notarization** (Hardened Runtime is enabled), not the Mac App Store. Set your `DEVELOPMENT_TEAM` in `project.yml`, or sign "to run locally" in Xcode for development.
 
 ## Releases & CI
 
@@ -136,7 +136,7 @@ Behavior by what's present:
 - **None** → unsigned. Clear the quarantine flag after copying to `/Applications`:
 
   ```bash
-  xattr -dr com.apple.quarantine /Applications/ContainersUI.app
+  xattr -dr com.apple.quarantine /Applications/ContainerUI.app
   ```
 
 The release notes generated for each build spell out which of these applies.
@@ -146,7 +146,7 @@ The release notes generated for each build spell out which of these applies.
 The workflow just calls scripts you can run yourself:
 
 ```bash
-VERSION=1.2.0 scripts/build-release.sh          # unsigned; produces dist/Containers-1.2.0.dmg
+VERSION=1.2.0 scripts/build-release.sh          # unsigned; produces dist/ContainerUI-1.2.0.dmg
 # or, signed, if a Developer ID identity is in your keychain:
 VERSION=1.2.0 SIGNING_IDENTITY="Developer ID Application: You (TEAMID)" TEAM_ID=TEAMID scripts/build-release.sh
 ```

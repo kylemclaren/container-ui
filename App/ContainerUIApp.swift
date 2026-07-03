@@ -1,12 +1,12 @@
 import SwiftUI
 
 @main
-struct ContainersUIApp: App {
+struct ContainerUIApp: App {
     @State private var app = AppModel()
 
     var body: some Scene {
         // A single main window so the menu bar can re-open it by id.
-        Window("Containers", id: "main") {
+        Window("ContainerUI", id: "main") {
             RootView()
                 .environment(app)
                 .frame(minWidth: 940, minHeight: 580)

@@ -32,7 +32,7 @@ private struct DetailColumn: View {
             content
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .navigationTitle(app.selection?.title ?? "Containers")
+        .navigationTitle(app.selection?.title ?? "ContainerUI")
     }
 
     @ViewBuilder private var content: some View {

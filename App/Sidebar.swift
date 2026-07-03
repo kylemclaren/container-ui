@@ -25,7 +25,7 @@ struct Sidebar: View {
                 .resizable()
                 .interpolation(.high)
                 .frame(width: 24, height: 24)
-            Text("Containers")
+            Text("ContainerUI")
                 .font(Theme.Typography.title)
                 .lineLimit(1)
             Spacer(minLength: 0)

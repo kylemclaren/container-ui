@@ -1,4 +1,4 @@
-name: ContainersUI
+name: ContainerUI
 
 options:
   bundleIdPrefix: dev.kylemclaren
@@ -24,7 +24,7 @@ settings:
     SWIFT_TREAT_WARNINGS_AS_ERRORS: NO
 
 targets:
-  ContainersUI:
+  ContainerUI:
     type: application
     platform: macOS
     deploymentTarget: "14.0"
@@ -36,9 +36,9 @@ targets:
       - path: Resources/Assets.xcassets
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: dev.kylemclaren.ContainersUI
-        PRODUCT_NAME: ContainersUI
-        CODE_SIGN_ENTITLEMENTS: Resources/ContainersUI.entitlements
+        PRODUCT_BUNDLE_IDENTIFIER: dev.kylemclaren.ContainerUI
+        PRODUCT_NAME: ContainerUI
+        CODE_SIGN_ENTITLEMENTS: Resources/ContainerUI.entitlements
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         COMBINE_HIDPI_IMAGES: YES
@@ -49,8 +49,8 @@ targets:
     info:
       path: Resources/Info.plist
       properties:
-        CFBundleDisplayName: Containers
-        CFBundleName: ContainersUI
+        CFBundleDisplayName: ContainerUI
+        CFBundleName: ContainerUI
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
@@ -59,7 +59,7 @@ targets:
         # Menu-bar/dock app (not an agent).
         LSUIElement: false
 
-  ContainersUITests:
+  ContainerUITests:
     type: bundle.unit-test
     platform: macOS
     deploymentTarget: "14.0"
@@ -71,19 +71,19 @@ targets:
       - Tests
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: dev.kylemclaren.ContainersUITests
+        PRODUCT_BUNDLE_IDENTIFIER: dev.kylemclaren.ContainerUITests
         GENERATE_INFOPLIST_FILE: YES
 
 schemes:
-  ContainersUI:
+  ContainerUI:
     build:
       targets:
-        ContainersUI: all
+        ContainerUI: all
     run:
       config: Debug
     test:
       config: Debug
       targets:
-        - ContainersUITests
+        - ContainerUITests
     archive:
       config: Release
