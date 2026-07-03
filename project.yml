@@ -65,6 +65,12 @@ targets:
         NSHumanReadableCopyright: "A SwiftUI GUI for Apple's container tool."
         # Menu-bar/dock app (not an agent).
         LSUIElement: false
+        # Sparkle auto-update — must live here: xcodegen regenerates Info.plist
+        # from these properties, dropping any keys added to the file directly.
+        SUFeedURL: "https://github.com/kylemclaren/container-ui/releases/latest/download/appcast.xml"
+        SUPublicEDKey: "U9EQSg3p7eLXu3zAJ2aQXtklhZPGZAkjSF3Eka4vI2w="
+        SUEnableAutomaticChecks: true
+        SUScheduledCheckInterval: 86400
 
   ContainerUITests:
     type: bundle.unit-test

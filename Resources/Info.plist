@@ -28,12 +28,12 @@
 	<false/>
 	<key>NSHumanReadableCopyright</key>
 	<string>A SwiftUI GUI for Apple's container tool.</string>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
 	<key>SUFeedURL</key>
 	<string>https://github.com/kylemclaren/container-ui/releases/latest/download/appcast.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>U9EQSg3p7eLXu3zAJ2aQXtklhZPGZAkjSF3Eka4vI2w=</string>
-	<key>SUEnableAutomaticChecks</key>
-	<true/>
 	<key>SUScheduledCheckInterval</key>
 	<integer>86400</integer>
 </dict>
