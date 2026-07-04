@@ -84,6 +84,11 @@ enum PaletteCatalog {
             systemImage: "hammer.fill", category: .action, keywords: "dockerfile compile make", intent: .buildImage
         ))
         out.append(.init(
+            id: "action.searchHub", title: "Search Docker Hub…", subtitle: "Find images to pull",
+            systemImage: "sparkle.magnifyingglass", category: .action,
+            keywords: "registry hub search explore find image download", intent: .navigate(.explore)
+        ))
+        out.append(.init(
             id: "action.createVolume", title: "Create a volume…", subtitle: nil,
             systemImage: "externaldrive.fill.badge.plus", category: .action, keywords: "new storage", intent: .createVolume
         ))

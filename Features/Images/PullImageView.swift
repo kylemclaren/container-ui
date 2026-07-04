@@ -9,7 +9,7 @@ struct PullImageView: View {
 
     @Environment(\.dismiss) private var dismiss
 
-    @State private var reference = ""
+    @State private var reference: String
     @State private var lines: [String] = []
     @State private var progress: PullProgress?
     @State private var displayedFraction: Double = 0
@@ -17,6 +17,12 @@ struct PullImageView: View {
     @State private var finished = false
     @State private var errorMessage: String?
     @State private var showConsole = false
+
+    init(service: ImageService, initialReference: String = "", onComplete: @escaping () async -> Void) {
+        self.service = service
+        self.onComplete = onComplete
+        _reference = State(initialValue: initialReference)
+    }
 
     var body: some View {
         VStack(spacing: 0) {

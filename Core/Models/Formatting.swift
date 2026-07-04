@@ -50,4 +50,51 @@ enum Formatting {
     static func cpus(_ count: Int) -> String {
         "\(count) CPU\(count == 1 ? "" : "s")"
     }
+
+    /// Compact human count for large tallies (stars, pulls): `999`, `21.3K`,
+    /// `1.2M`, `13.1B`. Trailing `.0` is dropped (`1.0K` → `1K`).
+    static func compactCount(_ value: Int) -> String {
+        // Thresholds sit just under each unit so a value that rounds up to
+        // "1000" within a band (e.g. 999_999_999) promotes to the next unit
+        // ("1B") rather than rendering "1000M".
+        let magnitude = abs(value)
+        switch magnitude {
+        case 999_950_000...:
+            return scaled(Double(value) / 1_000_000_000) + "B"
+        case 999_950...:
+            return scaled(Double(value) / 1_000_000) + "M"
+        case 1_000...:
+            return scaled(Double(value) / 1_000) + "K"
+        default:
+            return String(value)
+        }
+    }
+
+    private static func scaled(_ value: Double) -> String {
+        let rounded = (value * 10).rounded() / 10
+        if rounded == rounded.rounded() { return String(Int(rounded)) }
+        return String(format: "%.1f", rounded)
+    }
+
+    private static let iso8601Fractional: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
+    }()
+
+    private static let iso8601Plain: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime]
+        return formatter
+    }()
+
+    /// Relative time from an ISO-8601 string that may or may not carry fractional
+    /// seconds (Docker Hub uses nanoseconds). Returns nil if it can't be parsed.
+    static func relativeISO8601(_ string: String?, now: Date = Date()) -> String? {
+        guard let string, !string.isEmpty else { return nil }
+        guard let date = iso8601Fractional.date(from: string) ?? iso8601Plain.date(from: string) else {
+            return nil
+        }
+        return relative(date, now: now)
+    }
 }

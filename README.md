@@ -37,6 +37,24 @@ Run and inspect Linux containers, manage images, volumes & networks, and control
 
 > The app deploys to macOS 14 so it can launch and show a friendly "not installed" screen, but the backend it drives needs macOS 26.
 
+## Install
+
+Install the latest release with [Homebrew](https://brew.sh):
+
+```bash
+brew install --cask kylemclaren/tap/container-ui
+```
+
+The `owner/tap/name` form auto-taps [`kylemclaren/homebrew-tap`](https://github.com/kylemclaren/homebrew-tap), so it's a single step — no separate `brew tap` needed. From then on the app updates itself in place.
+
+Prefer a direct download? Grab the DMG from the [latest release](https://github.com/kylemclaren/container-ui/releases/latest), drag **ContainerUI** to Applications, and open it.
+
+> The build isn't notarized yet, so on first launch macOS Gatekeeper may block it. Clear the quarantine flag once:
+>
+> ```bash
+> xattr -dr com.apple.quarantine /Applications/ContainerUI.app
+> ```
+
 ## Build & run
 
 This repo doesn't check in an `.xcodeproj`; it's generated from [`project.yml`](project.yml) with XcodeGen.
