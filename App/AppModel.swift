@@ -5,6 +5,7 @@ import Observation
 enum SidebarItem: String, CaseIterable, Identifiable, Hashable {
     case containers
     case images
+    case explore
     case volumes
     case networks
     case system
@@ -15,6 +16,7 @@ enum SidebarItem: String, CaseIterable, Identifiable, Hashable {
         switch self {
         case .containers: return "Containers"
         case .images: return "Images"
+        case .explore: return "Explore"
         case .volumes: return "Volumes"
         case .networks: return "Networks"
         case .system: return "System"
@@ -25,6 +27,7 @@ enum SidebarItem: String, CaseIterable, Identifiable, Hashable {
         switch self {
         case .containers: return "shippingbox.fill"
         case .images: return "square.stack.3d.up.fill"
+        case .explore: return "sparkle.magnifyingglass"
         case .volumes: return "externaldrive.fill"
         case .networks: return "point.3.filled.connected.trianglepath.dotted"
         case .system: return "gearshape.2.fill"
@@ -85,6 +88,10 @@ final class AppModel {
     var systemService: SystemService? { cli.map(SystemService.init) }
     var volumeService: VolumeService? { cli.map(VolumeService.init) }
     var networkService: NetworkService? { cli.map(NetworkService.init) }
+
+    /// Docker Hub image search talks to the network directly (the CLI has no
+    /// registry-search command), so it's available regardless of the backend.
+    let dockerHubService = DockerHubService()
 
     /// Monotonic counter bumped by the global Refresh command (⌘R).
     /// Screens observe it and reload their own lists.

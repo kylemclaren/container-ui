@@ -154,5 +154,41 @@ enum Fixtures {
     [ { "appName": "container", "buildType": "debug", "commit": "abcdef1", "version": "0.4.1" } ]
     """
 
+    /// `GET /v2/search/repositories/?query=nginx` — official + two community repos.
+    static let hubSearch = """
+    {
+      "count": 3,
+      "next": "https://hub.docker.com/v2/search/repositories/?page=2&page_size=3&query=nginx",
+      "previous": "",
+      "results": [
+        { "repo_name": "nginx", "short_description": "Official build of Nginx.", "star_count": 21318, "pull_count": 13114222271, "repo_owner": "", "is_automated": false, "is_official": true },
+        { "repo_name": "grafana/grafana", "short_description": "The open observability platform", "star_count": 456, "pull_count": 987654321, "repo_owner": "grafana", "is_automated": false, "is_official": false },
+        { "repo_name": "cimg/postgres", "short_description": "", "star_count": 9, "pull_count": 719219989, "repo_owner": "cimg", "is_automated": false, "is_official": false }
+      ]
+    }
+    """
+
+    /// `GET /v2/repositories/library/nginx/tags/?ordering=last_updated` — one tag with
+    /// an attestation ("unknown") manifest to exclude, one single-platform tag.
+    static let hubTags = """
+    {
+      "count": 1231,
+      "next": "https://hub.docker.com/v2/repositories/library/nginx/tags/?ordering=last_updated&page=2&page_size=2",
+      "previous": null,
+      "results": [
+        { "creator": 1156886, "id": 987274600, "name": "latest", "full_size": 75271303, "last_updated": "2026-06-24T04:51:06.973034832Z",
+          "images": [
+            { "architecture": "amd64", "variant": null, "digest": "sha256:306d9dea", "os": "linux", "size": 75271303, "status": "active", "last_pushed": "2026-06-24T04:51:06.973034832Z" },
+            { "architecture": "arm64", "variant": "v8", "digest": "sha256:aa11bb22", "os": "linux", "size": 67000000, "status": "active", "last_pushed": "2026-06-24T04:51:07.402177787Z" },
+            { "architecture": "unknown", "variant": null, "digest": "sha256:39ca2ad7", "os": "unknown", "size": 4265361, "status": "active", "last_pushed": "2026-06-24T04:51:07.402177787Z" }
+          ] },
+        { "creator": 1156886, "id": 987274601, "name": "1.31", "full_size": 67000000, "last_updated": "2026-06-24T04:51:00Z",
+          "images": [
+            { "architecture": "arm64", "variant": "v8", "digest": "sha256:cc33dd44", "os": "linux", "size": 67000000, "status": "active", "last_pushed": "2026-06-24T04:51:00Z" }
+          ] }
+      ]
+    }
+    """
+
     static func data(_ string: String) -> Data { Data(string.utf8) }
 }
