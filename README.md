@@ -49,11 +49,19 @@ The `owner/tap/name` form auto-taps [`kylemclaren/homebrew-tap`](https://github.
 
 Prefer a direct download? Grab the DMG from the [latest release](https://github.com/kylemclaren/container-ui/releases/latest), drag **ContainerUI** to Applications, and open it.
 
-> The build isn't notarized yet, so on first launch macOS Gatekeeper may block it. Clear the quarantine flag once:
->
-> ```bash
-> xattr -dr com.apple.quarantine /Applications/ContainerUI.app
-> ```
+### Opening the app (Gatekeeper)
+
+ContainerUI isn't code-signed or notarized yet (that needs a paid Apple Developer account — see [Signing & distribution](#signing--distribution)). Because macOS **quarantines** anything downloaded, Gatekeeper blocks the first launch and reports the app as **"damaged"** or from an **"unidentified developer."** This applies to **both** install paths — Homebrew 5.1 removed the `--no-quarantine` flag, so `brew install --cask` no longer clears it for you.
+
+The reliable fix is to strip the quarantine attribute once, after the app is in `/Applications`:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/ContainerUI.app
+```
+
+Then open it normally. (Right-click → **Open** works for the "unidentified developer" prompt, but **not** for the "damaged" message that Apple silicon shows for unsigned apps — use the command above.)
+
+Nothing is wrong with the download; this is just how macOS treats software from developers who haven't paid into Apple's notarization program. Once ContainerUI ships notarized builds, this step goes away.
 
 ## Build & run
 
