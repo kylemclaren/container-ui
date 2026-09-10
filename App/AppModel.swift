@@ -27,7 +27,7 @@ enum SidebarItem: String, CaseIterable, Identifiable, Hashable {
 
     var symbol: String {
         switch self {
-        case .projects: return "square.stack.3d.up"
+        case .projects: return "folder.badge.gearshape"
         case .containers: return "shippingbox.fill"
         case .images: return "square.stack.3d.up.fill"
         case .explore: return "sparkle.magnifyingglass"

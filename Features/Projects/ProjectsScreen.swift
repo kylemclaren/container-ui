@@ -13,7 +13,16 @@ struct ProjectsScreen: View {
         VStack(spacing: 0) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Projects").font(Theme.Typography.largeTitle)
+                    HStack(spacing: 10) {
+                        Text("Projects").font(Theme.Typography.largeTitle)
+                        Text("Experimental")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.orange)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(.orange.opacity(0.12), in: Capsule())
+                            .help("Compose support is experimental. Review compatibility notes before starting a project.")
+                    }
                     Text("Run applications from Compose files").foregroundStyle(.secondary)
                 }
                 Spacer()
@@ -28,7 +37,7 @@ struct ProjectsScreen: View {
                     ForEach(model.projects) { project in
                         VStack(alignment: .leading, spacing: 4) {
                             Label(model.manifests[project.id]?.name ?? project.directory.lastPathComponent,
-                                  systemImage: "square.stack.3d.up")
+                                  systemImage: "folder.badge.gearshape")
                             Text(project.fileURL.lastPathComponent).font(.caption).foregroundStyle(.secondary)
                         }.padding(.vertical, 4).tag(project.id)
                     }
