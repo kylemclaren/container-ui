@@ -7,17 +7,20 @@ struct CommandInvocation: Sendable, Equatable {
     var arguments: [String]
     var environment: [String: String]?
     var standardInput: Data?
+    var currentDirectoryURL: URL?
 
     init(
         executableURL: URL,
         arguments: [String],
         environment: [String: String]? = nil,
-        standardInput: Data? = nil
+        standardInput: Data? = nil,
+        currentDirectoryURL: URL? = nil
     ) {
         self.executableURL = executableURL
         self.arguments = arguments
         self.environment = environment
         self.standardInput = standardInput
+        self.currentDirectoryURL = currentDirectoryURL
     }
 }
 
@@ -74,6 +77,7 @@ struct ProcessCommandRunner: CommandRunner {
                 let process = Process()
                 process.executableURL = invocation.executableURL
                 process.arguments = invocation.arguments
+                process.currentDirectoryURL = invocation.currentDirectoryURL
                 process.environment = Self.resolvedEnvironment(invocation.environment)
 
                 let outPipe = Pipe()
@@ -133,6 +137,7 @@ struct ProcessCommandRunner: CommandRunner {
             let process = Process()
             process.executableURL = invocation.executableURL
             process.arguments = invocation.arguments
+            process.currentDirectoryURL = invocation.currentDirectoryURL
             process.environment = Self.resolvedEnvironment(invocation.environment)
 
             let outPipe = Pipe()

@@ -31,6 +31,14 @@ struct SettingsView: View {
                     .foregroundStyle(statusColor)
             }
 
+            Section("Compose projects") {
+                TextField("Compose binary path", text: $app.composeExecutablePath, prompt: Text("Auto-detect container-compose"))
+                    .textFieldStyle(.roundedBorder)
+                Text("Requires Mcrich23/Container-Compose 1.1.0. Install with brew install container-compose.")
+                    .font(.callout).foregroundStyle(.secondary)
+                Button("Auto-detect Compose") { app.composeExecutablePath = "" }
+            }
+
             Section("Console") {
                 Picker("Open console in", selection: $app.preferredTerminal) {
                     ForEach(ConsoleOpener.installedTerminals()) { terminal in

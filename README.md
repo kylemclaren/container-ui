@@ -114,6 +114,7 @@ SwiftUI Views  ──▶  @Observable ViewModels  ──▶  Services  ──▶
 
 | Area | Capabilities |
 |------|--------------|
+| **Compose projects** | Import a Compose file, preview services and compatibility issues, select profiles, start/rebuild a stack, stop the project, and open service logs/inspect/console. Requires the optional **Container-Compose 1.1.0** backend; see [setup, supported features, and limitations](docs/compose.md). |
 | **Containers** | List (all/running), **live CPU/memory charts** with real CPU % derived from counter deltas, inspect, start/stop/restart/kill, delete, prune, streaming logs, exec, a full **Run** form (shell-style quoting supported), and a **one-click console** that opens an interactive shell in your terminal app (Terminal, iTerm2, Ghostty, Warp, kitty, Alacritty, WezTerm — pick in Settings). |
 | **Images** | List, inspect (config/env/layers/platforms), **Pull** with streaming progress, **run a container straight from an image**, tag, delete, prune. |
 | **Volumes** | List, inspect, create (with size/format), delete, prune. |

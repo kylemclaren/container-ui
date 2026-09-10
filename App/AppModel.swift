@@ -4,6 +4,7 @@ import Observation
 /// Sidebar destinations.
 enum SidebarItem: String, CaseIterable, Identifiable, Hashable {
     case containers
+    case projects
     case images
     case explore
     case volumes
@@ -14,6 +15,7 @@ enum SidebarItem: String, CaseIterable, Identifiable, Hashable {
 
     var title: String {
         switch self {
+        case .projects: return "Projects"
         case .containers: return "Containers"
         case .images: return "Images"
         case .explore: return "Explore"
@@ -25,6 +27,7 @@ enum SidebarItem: String, CaseIterable, Identifiable, Hashable {
 
     var symbol: String {
         switch self {
+        case .projects: return "square.stack.3d.up"
         case .containers: return "shippingbox.fill"
         case .images: return "square.stack.3d.up.fill"
         case .explore: return "sparkle.magnifyingglass"
@@ -46,6 +49,15 @@ final class AppModel {
         /// Installed, but the system service isn't running.
         case down(message: String)
         case up(SystemStatus)
+    }
+
+    let projects = ComposeProjectsModel()
+    var composeExecutablePath: String = UserDefaults.standard.string(forKey: "composeExecutablePath") ?? "" {
+        didSet { UserDefaults.standard.set(composeExecutablePath, forKey: "composeExecutablePath") }
+    }
+    var composeService: ComposeService? {
+        guard let cli, let url = ComposeService.resolve(override: composeExecutablePath) else { return nil }
+        return ComposeService(executableURL: url, containerCLI: cli)
     }
 
     var selection: SidebarItem? = .containers
