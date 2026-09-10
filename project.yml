@@ -9,6 +9,9 @@ options:
   generateEmptyDirectories: true
 
 packages:
+  Yams:
+    url: https://github.com/jpsim/Yams.git
+    exactVersion: 6.2.2
   Sparkle:
     url: https://github.com/sparkle-project/Sparkle
     exactVersion: 2.9.4
@@ -41,6 +44,7 @@ targets:
       - path: Resources/Assets.xcassets
     dependencies:
       - package: Sparkle
+      - package: Yams
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: dev.kylemclaren.ContainerUI
@@ -79,6 +83,8 @@ targets:
     # Host-less logic tests: the bundle compiles the UI-independent `Core`
     # sources directly (rather than @testable-importing the app), so
     # `xcodebuild test` runs fast and headless with no GUI host.
+    dependencies:
+      - package: Yams
     sources:
       - Core
       - Tests
@@ -100,3 +106,14 @@ schemes:
         - ContainerUITests
     archive:
       config: Release
+
+  ContainerUIComposeIntegration:
+    build:
+      targets:
+        ContainerUI: all
+    test:
+      config: Debug
+      environmentVariables:
+        CONTAINER_UI_COMPOSE_INTEGRATION: "1"
+      targets:
+        - ContainerUITests
