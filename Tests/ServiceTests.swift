@@ -39,6 +39,26 @@ struct ServiceTests {
         #expect(ContainerService.cleanErrorMessage(.notFound(message: "no such container: web")) == "no such container: web")
     }
 
+    @Test func cleanOnStaleGuestAgentSaysRestart() {
+        // Verbatim from container 1.4.1 against a container whose VM booted
+        // before the upgrade: every mount fails with an unimplemented RPC.
+        let stderr = """
+        Error: internalError: "failed to clean container" (cause: "internalError: "failed to clean container ui-ex-dev (cause: "internalError: "failed to clean mounts in ui-ex-dev: / (unimplemented: "Requested RPC isn't implemented by this server."), /app/deps (unimplemented: "Requested RPC isn't implemented by this server."), /app/_build (unimplemented: "Requested RPC isn't implemented by this server."), /app/assets/node_modules (unimplemented: "Requested RPC isn't implemented by this server.")"")"")
+        """
+        #expect(ContainerService.cleanFailedContainerNames(in: stderr) == ["ui-ex-dev"])
+        let message = ContainerService.cleanErrorMessage(.commandFailed(code: 1, stderr: stderr))
+        #expect(message == "“ui-ex-dev” was started before the current container release was installed, so the agent inside can’t trim yet. Restart it, then clean again.")
+
+        // Several containers in one bulk clean.
+        let two = "failed to clean container web (cause: x unimplemented) failed to clean container db (cause: y unimplemented) failed to clean container web (cause: z)"
+        #expect(ContainerService.cleanFailedContainerNames(in: two) == ["web", "db"])
+        #expect(ContainerService.cleanErrorMessage(.commandFailed(code: 1, stderr: two)).hasPrefix("“web”, “db” were started before"))
+        #expect(ContainerService.cleanErrorMessage(.commandFailed(code: 1, stderr: two)).hasSuffix("Restart them, then clean again."))
+
+        // Unrelated failures pass through untouched.
+        #expect(ContainerService.cleanErrorMessage(.commandFailed(code: 1, stderr: "boom")) == "boom")
+    }
+
     @Test func statusDecodesDespiteNonZeroExit() async throws {
         // When the service is down, `system status` exits 1 but still prints JSON.
         let mock = MockCommandRunner(stdout: Fixtures.systemStatusUnregistered, exitCode: 1)
