@@ -86,12 +86,44 @@ struct ContainerService: Sendable {
     /// Shown when the CLI predates `clean` (added in container 1.4.1).
     static let cleanUnsupportedMessage = "Cleaning containers requires Apple container 1.4.1 or later."
 
-    /// An older CLI rejects the unknown `clean` subcommand with an
-    /// argument-parser usage error; surface that as a version requirement
-    /// instead of the raw parser text. Other errors describe themselves.
+    /// Translates `clean` failures the raw CLI text explains badly:
+    /// - An older CLI rejects the unknown subcommand with an argument-parser
+    ///   usage error → name the version requirement.
+    /// - A container whose VM booted before the CLI upgrade still runs the old
+    ///   guest agent, which lacks the trim RPC; every path then fails with
+    ///   `unimplemented: "Requested RPC isn't implemented by this server."` →
+    ///   name the containers and say to restart them.
+    /// Other errors describe themselves.
     static func cleanErrorMessage(_ error: CLIError) -> String {
         if case .usage = error { return cleanUnsupportedMessage }
-        return error.localizedDescription
+        let text = error.localizedDescription
+        if text.lowercased().contains("unimplemented") {
+            let names = cleanFailedContainerNames(in: text)
+            let subject: String
+            switch names.count {
+            case 0: subject = "Some containers were"
+            case 1: subject = "“\(names[0])” was"
+            default: subject = names.map { "“\($0)”" }.joined(separator: ", ") + " were"
+            }
+            let pronoun = names.count == 1 ? "it" : "them"
+            return "\(subject) started before the current container release was installed, so the agent inside can’t trim yet. Restart \(pronoun), then clean again."
+        }
+        return text
+    }
+
+    /// Pulls container names out of the CLI's aggregate clean error
+    /// (`failed to clean container <name> (cause: …)`), in order, de-duplicated.
+    static func cleanFailedContainerNames(in text: String) -> [String] {
+        guard let regex = try? NSRegularExpression(pattern: #"failed to clean container ([^\s(]+) \("#) else { return [] }
+        let range = NSRange(text.startIndex..., in: text)
+        var seen: Set<String> = []
+        var names: [String] = []
+        for match in regex.matches(in: text, range: range) {
+            guard let nameRange = Range(match.range(at: 1), in: text) else { continue }
+            let name = String(text[nameRange])
+            if seen.insert(name).inserted { names.append(name) }
+        }
+        return names
     }
 
     static func runArguments(_ options: RunOptions) -> [String] {
