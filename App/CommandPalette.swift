@@ -10,6 +10,7 @@ enum AppIntent: Equatable, Hashable, Sendable {
     // Containers
     case startContainer(id: String)
     case stopContainer(id: String)
+    case cleanContainer(id: String)
     case containerLogs(id: String)
     case inspectContainer(id: String)
     case openConsole(id: String)
@@ -141,6 +142,13 @@ enum PaletteCatalog {
                     id: "container.stop.\(container.id)", title: "Stop \(container.name)", subtitle: nil,
                     systemImage: "stop.fill", category: .container,
                     keywords: container.imageReference, intent: .stopContainer(id: container.id)
+                ))
+                out.append(.init(
+                    id: "container.clean.\(container.id)", title: "Clean \(container.name)",
+                    subtitle: "Reclaim disk space from freed blocks",
+                    systemImage: "sparkles", category: .container,
+                    keywords: "\(container.imageReference) trim reclaim disk space",
+                    intent: .cleanContainer(id: container.id)
                 ))
             } else {
                 out.append(.init(

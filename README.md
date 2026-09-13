@@ -115,11 +115,11 @@ SwiftUI Views  ──▶  @Observable ViewModels  ──▶  Services  ──▶
 | Area | Capabilities |
 |------|--------------|
 | **Compose projects** | Import a Compose file, preview services and compatibility issues, select profiles, start/rebuild a stack, stop the project, and open service logs/inspect/console. Requires the optional **Container-Compose 1.1.0** backend; see [setup, supported features, and limitations](docs/compose.md). |
-| **Containers** | List (all/running), **live CPU/memory charts** with real CPU % derived from counter deltas, inspect, start/stop/restart/kill, delete, prune, streaming logs, exec, a full **Run** form (shell-style quoting supported), and a **one-click console** that opens an interactive shell in your terminal app (Terminal, iTerm2, Ghostty, Warp, kitty, Alacritty, WezTerm — pick in Settings). |
+| **Containers** | List (all/running), **live CPU/memory charts** with real CPU % derived from counter deltas, inspect, start/stop/restart/kill, delete, prune, **clean** (trim freed blocks so the host reclaims disk space; container 1.4.1+), streaming logs, exec, a full **Run** form (shell-style quoting supported), and a **one-click console** that opens an interactive shell in your terminal app (Terminal, iTerm2, Ghostty, Warp, kitty, Alacritty, WezTerm — pick in Settings). |
 | **Images** | List, inspect (config/env/layers/platforms), **Pull** with streaming progress, **run a container straight from an image**, tag, delete, prune. |
 | **Volumes** | List, inspect, create (with size/format), delete, prune. |
 | **Networks** | List, inspect (subnets/gateway), create (NAT or host-only, custom subnets), delete, prune — with the built-in network protected. |
-| **System** | Service status, versions, disk usage, reclaim-space pruning, and start/stop the system service. |
+| **System** | Service status, versions, disk usage, reclaim-space pruning, one-click clean of every running container, and start/stop the system service. |
 | **Everywhere** | **⌘K command palette** (fuzzy search across every container, image, volume, network, and action), menu-bar quick controls, right-click context menus, and ⌘R refresh of the active screen. |
 
 The app auto-detects the `container` binary (and lets you set a custom path in **Settings**), and surfaces a clear state when the tool isn't installed or the service isn't running.

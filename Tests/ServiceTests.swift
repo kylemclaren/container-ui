@@ -15,6 +15,30 @@ struct ServiceTests {
         #expect(mock.lastArguments == ["list", "--all", "--format", "json"])
     }
 
+    @Test func cleanSendsIDsAndReturnsCleanedList() async throws {
+        // `container clean` prints each cleaned id on its own line.
+        let mock = MockCommandRunner(stdout: "web\ndb\n")
+        let service = ContainerService(cli: .mock(mock))
+
+        let output = try await service.clean(ids: ["web", "db"])
+
+        #expect(output == "web\ndb")
+        #expect(mock.lastArguments == ["clean", "web", "db"])
+    }
+
+    @Test func cleanOnOlderCLIExplainsVersionRequirement() async {
+        // A CLI older than 1.4.1 rejects the unknown subcommand with a
+        // usage error (exit 64); the UI should name the version, not the parser.
+        let mock = MockCommandRunner(stderr: "Error: Unexpected argument 'clean'", exitCode: 64)
+        let service = ContainerService(cli: .mock(mock))
+
+        await #expect(throws: CLIError.usage(message: "Error: Unexpected argument 'clean'")) {
+            try await service.clean(ids: ["web"])
+        }
+        #expect(ContainerService.cleanErrorMessage(.usage(message: "x")) == ContainerService.cleanUnsupportedMessage)
+        #expect(ContainerService.cleanErrorMessage(.notFound(message: "no such container: web")) == "no such container: web")
+    }
+
     @Test func statusDecodesDespiteNonZeroExit() async throws {
         // When the service is down, `system status` exits 1 but still prints JSON.
         let mock = MockCommandRunner(stdout: Fixtures.systemStatusUnregistered, exitCode: 1)

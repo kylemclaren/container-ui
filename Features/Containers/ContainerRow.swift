@@ -13,6 +13,7 @@ struct ContainerRow: View {
     var onStart: () -> Void
     var onStop: () -> Void
     var onRestart: () -> Void
+    var onClean: () -> Void
     var onLogs: () -> Void
     var onKill: () -> Void
     var onDelete: () -> Void
@@ -131,6 +132,9 @@ struct ContainerRow: View {
             Button("Stop", systemImage: "stop.fill", action: onStop)
             Button("Restart", systemImage: "arrow.clockwise", action: onRestart)
             Button("Kill", systemImage: "bolt.fill", action: onKill)
+            Divider()
+            Button("Clean", systemImage: "sparkles", action: onClean)
+                .help("Trim freed blocks so the host can reclaim disk space")
         } else {
             Button("Start", systemImage: "play.fill", action: onStart)
         }

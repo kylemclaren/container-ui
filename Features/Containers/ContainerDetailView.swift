@@ -6,6 +6,11 @@ struct ContainerDetailView: View {
     var stats: ContainerStats?
     /// Rolling CPU/memory series for the live chart (empty hides the chart).
     var statsPoints: [StatsPoint] = []
+    /// True while a lifecycle action on this container is in flight.
+    var isBusy = false
+    /// Trims freed blocks to reclaim disk space (`container clean`, 1.4.1+).
+    /// Nil hides the button (e.g. hosts without a containers view model).
+    var onClean: (() -> Void)? = nil
 
     @Environment(AppModel.self) private var app
 
@@ -76,6 +81,14 @@ struct ContainerDetailView: View {
                 StatusBadge(state: container.state)
                 if container.isRunning {
                     Spacer(minLength: 0)
+                    if let onClean {
+                        PillButton { onClean() } label: {
+                            if isBusy { ProgressView().controlSize(.small) }
+                            else { Label("Clean", systemImage: "sparkles") }
+                        }
+                        .disabled(isBusy)
+                        .help("Trim freed blocks so the host can reclaim disk space")
+                    }
                     PillButton(style: .accent) { app.openConsole(container) } label: {
                         Label("Console", systemImage: "terminal")
                     }

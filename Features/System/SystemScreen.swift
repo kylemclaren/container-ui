@@ -7,9 +7,13 @@ struct SystemScreen: View {
 
     @State private var pruningContainers = false
     @State private var pruningImages = false
+    @State private var cleaningContainers = false
     @State private var showPruneContainers = false
     @State private var showPruneImages = false
+    @State private var showCleanContainers = false
     @State private var pruneError: String?
+
+    private var isReclaiming: Bool { pruningContainers || pruningImages || cleaningContainers }
 
     init(service: SystemService) {
         _model = State(initialValue: SystemViewModel(service: service))
@@ -61,6 +65,17 @@ struct SystemScreen: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("This removes dangling and unreferenced images. Images used by a container are left untouched.")
+        }
+        .confirmationDialog(
+            "Clean running containers?",
+            isPresented: $showCleanContainers
+        ) {
+            Button("Clean \(app.runningContainers.count) running") {
+                Task { await cleanRunningContainers() }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This trims freed blocks on each running container’s root filesystem and named volumes so the host can reclaim the space. Nothing is deleted. Requires container 1.4.1 or later.")
         }
     }
 
@@ -204,7 +219,7 @@ struct SystemScreen: View {
                         Label("Prune containers", systemImage: "shippingbox")
                     }
                 }
-                .disabled(app.containerService == nil || pruningContainers || pruningImages)
+                .disabled(app.containerService == nil || isReclaiming)
 
                 PillButton { showPruneImages = true } label: {
                     if pruningImages {
@@ -213,7 +228,17 @@ struct SystemScreen: View {
                         Label("Prune images", systemImage: "square.stack.3d.up")
                     }
                 }
-                .disabled(app.imageService == nil || pruningContainers || pruningImages)
+                .disabled(app.imageService == nil || isReclaiming)
+
+                PillButton { showCleanContainers = true } label: {
+                    if cleaningContainers {
+                        ProgressView().controlSize(.small)
+                    } else {
+                        Label("Clean running containers", systemImage: "sparkles")
+                    }
+                }
+                .disabled(app.containerService == nil || app.runningContainers.isEmpty || isReclaiming)
+                .help("Trim freed blocks in every running container so the host can reclaim disk space (container 1.4.1+)")
 
                 Spacer()
             }
@@ -236,6 +261,26 @@ struct SystemScreen: View {
             await model.load()
         } catch let error as CLIError {
             pruneError = error.localizedDescription
+        } catch {
+            pruneError = error.localizedDescription
+        }
+    }
+
+    /// `container clean` on every running container (the monitor keeps
+    /// `app.runningContainers` fresh). Nothing is deleted; the CLI skips
+    /// read-only roots and `ro` mounts, and reports per-path failures at once.
+    private func cleanRunningContainers() async {
+        guard let containerService = app.containerService else { return }
+        let ids = app.runningContainers.map(\.id)
+        guard !ids.isEmpty else { return }
+        cleaningContainers = true
+        pruneError = nil
+        defer { cleaningContainers = false }
+        do {
+            _ = try await containerService.clean(ids: ids)
+            await model.load()
+        } catch let error as CLIError {
+            pruneError = ContainerService.cleanErrorMessage(error)
         } catch {
             pruneError = error.localizedDescription
         }
