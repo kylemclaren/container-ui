@@ -62,10 +62,12 @@ private struct DetailColumn: View {
            let imageService = app.imageService,
            let systemService = app.systemService,
            let volumeService = app.volumeService,
-           let networkService = app.networkService {
+           let networkService = app.networkService,
+           let machineService = app.machineService {
             switch app.selection ?? .containers {
             case .projects: ProjectsScreen()
             case .containers: ContainersScreen(service: containerService)
+            case .machines: MachinesScreen(service: machineService, containerService: containerService)
             case .images: ImagesScreen(service: imageService)
             case .explore: ExploreScreen(service: app.dockerHubService)
             case .volumes: VolumesScreen(service: volumeService)

@@ -4,6 +4,7 @@ import Observation
 /// Sidebar destinations.
 enum SidebarItem: String, CaseIterable, Identifiable, Hashable {
     case containers
+    case machines
     case projects
     case images
     case explore
@@ -17,6 +18,7 @@ enum SidebarItem: String, CaseIterable, Identifiable, Hashable {
         switch self {
         case .projects: return "Projects"
         case .containers: return "Containers"
+        case .machines: return "Machines"
         case .images: return "Images"
         case .explore: return "Explore"
         case .volumes: return "Volumes"
@@ -29,6 +31,7 @@ enum SidebarItem: String, CaseIterable, Identifiable, Hashable {
         switch self {
         case .projects: return "folder.badge.gearshape"
         case .containers: return "shippingbox.fill"
+        case .machines: return "desktopcomputer"
         case .images: return "square.stack.3d.up.fill"
         case .explore: return "sparkle.magnifyingglass"
         case .volumes: return "externaldrive.fill"
@@ -68,6 +71,8 @@ final class AppModel {
     private(set) var containers: [Container] = []
     /// Running subset — drives the menu bar badge.
     var runningContainers: [Container] { containers.filter(\.isRunning) }
+    /// All container machines, refreshed by the background monitor.
+    private(set) var machines: [ContainerMachine] = []
     /// True while a service start/stop initiated from the menu bar is in flight.
     private(set) var isMutatingService = false
 
@@ -104,6 +109,7 @@ final class AppModel {
     var volumeService: VolumeService? { cli.map(VolumeService.init) }
     var networkService: NetworkService? { cli.map(NetworkService.init) }
     var registryService: RegistryService? { cli.map(RegistryService.init) }
+    var machineService: MachineService? { cli.map(MachineService.init) }
 
     /// Docker Hub image search talks to the network directly (the CLI has no
     /// registry-search command), so it's available regardless of the backend.
@@ -135,6 +141,7 @@ final class AppModel {
     var paletteItems: [PaletteItem] {
         PaletteCatalog.items(
             containers: containers,
+            machines: machines,
             images: paletteImages,
             volumes: paletteVolumes,
             networks: paletteNetworks,
@@ -176,8 +183,17 @@ final class AppModel {
             if let container = containers.first(where: { $0.id == id }) {
                 openConsole(container)
             }
+        case .startMachine(let id):
+            Task { await startMachine(id) }
+        case .stopMachine(let id):
+            Task { await stopMachine(id) }
+        case .openMachineShell(let id):
+            openMachineShell(id: id)
         case .runContainer, .containerLogs, .inspectContainer, .cleanContainer:
             select(.containers)
+            pendingIntent = intent
+        case .createMachine, .inspectMachine:
+            select(.machines)
             pendingIntent = intent
         case .pullImage, .buildImage, .runImage, .inspectImage:
             select(.images)
@@ -246,6 +262,7 @@ final class AppModel {
             while !Task.isCancelled {
                 await self?.refreshBackend()
                 await self?.refreshContainers()
+                await self?.refreshMachines()
                 try? await Task.sleep(nanoseconds: 5_000_000_000)
             }
         }
@@ -264,6 +281,21 @@ final class AppModel {
             return lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending
         }
         if sorted != containers { containers = sorted }
+    }
+
+    /// Refreshes `machines` from `container machine list` (running first);
+    /// clears it when the backend isn't up. Transient errors keep the old list.
+    func refreshMachines() async {
+        guard isBackendUp, let machineService else {
+            if !machines.isEmpty { machines = [] }
+            return
+        }
+        guard let all = try? await machineService.list() else { return }
+        let sorted = all.sorted { lhs, rhs in
+            if lhs.isRunning != rhs.isRunning { return lhs.isRunning }
+            return lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending
+        }
+        if sorted != machines { machines = sorted }
     }
 
     // MARK: Service & container control (used by the menu bar)
@@ -299,6 +331,19 @@ final class AppModel {
         await refreshContainers()
     }
 
+    /// Boots a machine headlessly (`machine run --detach`).
+    func startMachine(_ id: String) async {
+        guard let machineService else { return }
+        _ = try? await machineService.start(id: id)
+        await refreshMachines()
+    }
+
+    func stopMachine(_ id: String) async {
+        guard let machineService else { return }
+        _ = try? await machineService.stop(id: id)
+        await refreshMachines()
+    }
+
     // MARK: One-click console
 
     /// The user-visible error from the last console-open attempt, if any.
@@ -319,6 +364,22 @@ final class AppModel {
             containerPath: cli.executableURL.path,
             id: container.id,
             name: container.name
+        ) { [weak self] message in
+            self?.consoleError = message
+        }
+    }
+
+    /// Opens a login shell in machine `id` in the preferred terminal. Works for
+    /// stopped machines too — the CLI boots them first.
+    func openMachineShell(id: String) {
+        guard let cli else {
+            consoleError = "The container CLI couldn’t be found."
+            return
+        }
+        ConsoleOpener.openMachineShell(
+            preferred: preferredTerminal,
+            containerPath: cli.executableURL.path,
+            id: id
         ) { [weak self] message in
             self?.consoleError = message
         }

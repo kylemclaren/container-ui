@@ -29,7 +29,7 @@ enum ConsoleOpener {
         }
     }
 
-    /// Opens an interactive shell into `id` in the preferred terminal.
+    /// Opens an interactive shell into container `id` in the preferred terminal.
     /// A chosen-but-missing terminal degrades to the system-default path.
     /// All failures (sync and async Launch Services callbacks alike) are
     /// reported through `onFailure` on the main actor.
@@ -40,8 +40,41 @@ enum ConsoleOpener {
         name: String,
         onFailure: @escaping @MainActor (String) -> Void
     ) {
-        let execArgv = TerminalLauncher.execArgv(containerPath: containerPath, id: id)
+        open(
+            preferred: preferred,
+            argv: TerminalLauncher.execArgv(containerPath: containerPath, id: id),
+            scriptBody: TerminalLauncher.commandFileBody(containerPath: containerPath, id: id, name: name),
+            scriptFilename: TerminalLauncher.scriptFilename(name: name, id: id),
+            onFailure: onFailure
+        )
+    }
 
+    /// Opens a login shell in container machine `id` (as the host user, home
+    /// mounted), booting the machine first if it's stopped.
+    static func openMachineShell(
+        preferred: TerminalApp,
+        containerPath: String,
+        id: String,
+        onFailure: @escaping @MainActor (String) -> Void
+    ) {
+        open(
+            preferred: preferred,
+            argv: TerminalLauncher.machineShellArgv(containerPath: containerPath, id: id),
+            scriptBody: TerminalLauncher.machineCommandFileBody(containerPath: containerPath, id: id),
+            scriptFilename: TerminalLauncher.scriptFilename(name: "machine-\(id)", id: id),
+            onFailure: onFailure
+        )
+    }
+
+    /// Shared launch path: argv terminals get `argv` as launch arguments;
+    /// script terminals open a self-deleting `.command` file with `scriptBody`.
+    private static func open(
+        preferred: TerminalApp,
+        argv execArgv: [String],
+        scriptBody: String,
+        scriptFilename: String,
+        onFailure: @escaping @MainActor (String) -> Void
+    ) {
         if let extraArgs = TerminalLauncher.terminalArguments(for: preferred, execArgv: execArgv),
            let bundleID = preferred.bundleIdentifier,
            NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) != nil {
@@ -59,7 +92,7 @@ enum ConsoleOpener {
         // Script path: write a self-deleting `.command` and open it.
         let scriptURL: URL
         do {
-            scriptURL = try writeScript(containerPath: containerPath, id: id, name: name)
+            scriptURL = try writeScript(body: scriptBody, filename: scriptFilename)
         } catch {
             onFailure(error.localizedDescription)
             return
@@ -114,12 +147,11 @@ enum ConsoleOpener {
         FileManager.default.temporaryDirectory.appendingPathComponent("ContainerUI-consoles", isDirectory: true)
     }
 
-    private static func writeScript(containerPath: String, id: String, name: String) throws -> URL {
+    private static func writeScript(body: String, filename: String) throws -> URL {
         let dir = scriptsDirectory
-        let url = dir.appendingPathComponent(TerminalLauncher.scriptFilename(name: name, id: id))
+        let url = dir.appendingPathComponent(filename)
         do {
             try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-            let body = TerminalLauncher.commandFileBody(containerPath: containerPath, id: id, name: name)
             try body.write(to: url, atomically: true, encoding: .utf8)
             try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: url.path)
         } catch {
