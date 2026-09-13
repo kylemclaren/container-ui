@@ -58,6 +58,9 @@ final class MachinesViewModel {
             }
             errorMessage = nil
             isDaemonDown = false
+            // The list is enough to render rows; details and stats are
+            // per-machine CLI round-trips and must not hold the spinner.
+            isLoading = false
             await refreshDetails()
             await loadStats()
         } catch let error as CLIError {
