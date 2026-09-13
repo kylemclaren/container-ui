@@ -15,6 +15,12 @@ enum AppIntent: Equatable, Hashable, Sendable {
     case inspectContainer(id: String)
     case openConsole(id: String)
     case runContainer
+    // Machines
+    case startMachine(id: String)
+    case stopMachine(id: String)
+    case openMachineShell(id: String)
+    case inspectMachine(id: String)
+    case createMachine
     // Images
     case runImage(reference: String)
     case inspectImage(id: String)
@@ -34,13 +40,14 @@ enum AppIntent: Equatable, Hashable, Sendable {
 /// One row in the command palette.
 struct PaletteItem: Identifiable, Equatable {
     enum Category: Int, CaseIterable {
-        case action, navigation, container, image, volume, network
+        case action, navigation, container, machine, image, volume, network
 
         var label: String {
             switch self {
             case .action: return "Actions"
             case .navigation: return "Go to"
             case .container: return "Containers"
+            case .machine: return "Machines"
             case .image: return "Images"
             case .volume: return "Volumes"
             case .network: return "Networks"
@@ -64,6 +71,7 @@ struct PaletteItem: Identifiable, Equatable {
 enum PaletteCatalog {
     static func items(
         containers: [Container],
+        machines: [ContainerMachine] = [],
         images: [ContainerImage],
         volumes: [ContainerVolume],
         networks: [ContainerNetwork],
@@ -88,6 +96,10 @@ enum PaletteCatalog {
             id: "action.searchHub", title: "Search Docker Hub…", subtitle: "Find images to pull",
             systemImage: "sparkle.magnifyingglass", category: .action,
             keywords: "registry hub search explore find image download", intent: .navigate(.explore)
+        ))
+        out.append(.init(
+            id: "action.createMachine", title: "Create a machine…", subtitle: "A persistent Linux environment with your home directory",
+            systemImage: "desktopcomputer", category: .action, keywords: "new linux vm machine dev environment", intent: .createMachine
         ))
         out.append(.init(
             id: "action.createVolume", title: "Create a volume…", subtitle: nil,
@@ -162,6 +174,37 @@ enum PaletteCatalog {
                 systemImage: "text.alignleft", category: .container,
                 keywords: container.imageReference, intent: .containerLogs(id: container.id)
             ))
+        }
+
+        // Machines — running first.
+        for machine in machines.sorted(by: { $0.isRunning && !$1.isRunning }) {
+            let stateLabel = machine.isRunning ? "running" : "stopped"
+            let address = machine.ipAddress.map { " · \($0)" } ?? ""
+            out.append(.init(
+                id: "machine.inspect.\(machine.id)", title: machine.name,
+                subtitle: "Machine · \(stateLabel)\(address)",
+                systemImage: "desktopcomputer", category: .machine,
+                keywords: "machine linux vm", intent: .inspectMachine(id: machine.id)
+            ))
+            out.append(.init(
+                id: "machine.shell.\(machine.id)", title: "Shell: \(machine.name)",
+                subtitle: machine.isRunning ? "Open a shell in your terminal" : "Boot and open a shell in your terminal",
+                systemImage: "terminal.fill", category: .machine,
+                keywords: "machine shell ssh console", intent: .openMachineShell(id: machine.id)
+            ))
+            if machine.isRunning {
+                out.append(.init(
+                    id: "machine.stop.\(machine.id)", title: "Stop \(machine.name)", subtitle: nil,
+                    systemImage: "stop.fill", category: .machine,
+                    keywords: "machine", intent: .stopMachine(id: machine.id)
+                ))
+            } else {
+                out.append(.init(
+                    id: "machine.start.\(machine.id)", title: "Start \(machine.name)", subtitle: nil,
+                    systemImage: "play.fill", category: .machine,
+                    keywords: "machine boot", intent: .startMachine(id: machine.id)
+                ))
+            }
         }
 
         // Images.

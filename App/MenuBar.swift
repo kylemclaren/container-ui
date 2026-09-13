@@ -39,6 +39,10 @@ struct MenuBarContent: View {
             header
             Divider()
             containersSection
+            if app.isBackendUp, !app.machines.isEmpty {
+                Divider()
+                machinesSection
+            }
             Divider()
             footer
         }
@@ -49,6 +53,7 @@ struct MenuBarContent: View {
             app.startMonitoring()
             await app.refreshBackend()
             await app.refreshContainers()
+            await app.refreshMachines()
             await loadStats()
         }
     }
@@ -162,6 +167,59 @@ struct MenuBarContent: View {
         .padding(.horizontal, 8)
         .padding(.top, 2)
         .padding(.bottom, 8)
+    }
+
+    // MARK: Machines
+
+    private var machinesSection: some View {
+        VStack(spacing: 6) {
+            HStack {
+                SectionLabel(title: "Machines")
+                Spacer(minLength: 8)
+                Text(machinesSummary)
+                    .font(Theme.Typography.caption)
+                    .foregroundStyle(app.machines.contains(where: \.isRunning) ? Color.green : Color.secondary)
+            }
+            .padding(.horizontal, 12)
+            .padding(.top, 10)
+
+            VStack(spacing: 3) {
+                ForEach(app.machines) { machine in
+                    MenuMachineRow(
+                        machine: machine,
+                        busy: busyIDs.contains("machine:" + machine.id),
+                        onOpen: { inspectMachine(machine.id) },
+                        onShell: { app.openMachineShell(id: machine.id); dismiss() },
+                        onStart: { runMachine(machine.id) { await app.startMachine($0) } },
+                        onStop: { runMachine(machine.id) { await app.stopMachine($0) } }
+                    )
+                }
+            }
+            .padding(.horizontal, 8)
+            .padding(.top, 2)
+            .padding(.bottom, 8)
+        }
+    }
+
+    private var machinesSummary: String {
+        let count = app.machines.filter(\.isRunning).count
+        return count == 0 ? "None running" : "\(count) running"
+    }
+
+    private func runMachine(_ id: String, _ action: @escaping (String) async -> Void) {
+        Task {
+            busyIDs.insert("machine:" + id)
+            await action(id)
+            busyIDs.remove("machine:" + id)
+        }
+    }
+
+    /// Opens the main window with the machine's inspector shown.
+    private func inspectMachine(_ id: String) {
+        NSApp.activate(ignoringOtherApps: true)
+        openWindow(id: "main")
+        app.dispatch(.inspectMachine(id: id))
+        dismiss()
     }
 
     // MARK: Footer
@@ -307,6 +365,69 @@ private struct MenuContainerRow: View {
         }
         .buttonStyle(.plain)
         .help("Open in Containers")
+        .background(hovering ? Theme.Palette.controlBackground : Color.clear,
+                    in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .onHover { isHovering in withAnimation(Theme.Motion.snappy) { hovering = isHovering } }
+        .fixedSize(horizontal: false, vertical: true)
+    }
+}
+
+/// One machine in the menu bar list: identity, IP when running, and shell /
+/// start / stop controls. Clicking the row opens its inspector in the main window.
+private struct MenuMachineRow: View {
+    let machine: ContainerMachine
+    let busy: Bool
+    var onOpen: () -> Void
+    var onShell: () -> Void
+    var onStart: () -> Void
+    var onStop: () -> Void
+
+    @State private var hovering = false
+
+    private var tint: Color { machine.isRunning ? .green : .secondary }
+
+    var body: some View {
+        Button(action: onOpen) {
+            HStack(spacing: 9) {
+                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    .fill(tint.opacity(0.16))
+                    .frame(width: 26, height: 26)
+                    .overlay {
+                        Image(systemName: "desktopcomputer")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(tint)
+                    }
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(machine.name)
+                        .font(Theme.Typography.caption)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                    Text(machine.ipAddress ?? (machine.isRunning ? "Running" : "Stopped"))
+                        .font(Theme.Typography.monoCaption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+                Spacer(minLength: 6)
+                if busy {
+                    ProgressView().controlSize(.small).frame(width: 24, height: 24)
+                } else {
+                    CircleIconButton(systemImage: "terminal", tint: .accentColor, help: "Open shell", size: 24, action: onShell)
+                        .opacity(hovering ? 1 : 0.6)
+                    if machine.isRunning {
+                        CircleIconButton(systemImage: "stop.fill", tint: .orange, help: "Stop", size: 24, action: onStop)
+                            .opacity(hovering ? 1 : 0.6)
+                    } else {
+                        CircleIconButton(systemImage: "play.fill", tint: .green, help: "Start", size: 24, action: onStart)
+                            .opacity(hovering ? 1 : 0.6)
+                    }
+                }
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help("Open in Machines")
         .background(hovering ? Theme.Palette.controlBackground : Color.clear,
                     in: RoundedRectangle(cornerRadius: 8, style: .continuous))
         .onHover { isHovering in withAnimation(Theme.Motion.snappy) { hovering = isHovering } }

@@ -1,10 +1,42 @@
 import SwiftUI
 import AppKit
 
-/// A streaming log viewer presented as a sheet.
+/// A streaming log viewer presented as a sheet. Reads from a `Source` so the
+/// same viewer serves containers (`container logs`) and machines
+/// (`container machine logs`).
 struct ContainerLogsView: View {
-    let service: ContainerService
-    let container: Container
+    /// Where the lines come from: a display name plus one-shot and followed readers.
+    struct Source {
+        let name: String
+        let fetch: @Sendable (_ tail: Int) async throws -> String
+        let stream: @Sendable (_ tail: Int) -> AsyncThrowingStream<StreamLine, Error>
+
+        static func container(_ container: Container, service: ContainerService) -> Source {
+            Source(
+                name: container.name,
+                fetch: { tail in try await service.logs(id: container.id, tail: tail) },
+                stream: { tail in service.streamLogs(id: container.id, tail: tail) }
+            )
+        }
+
+        static func machine(_ machine: ContainerMachine, service: MachineService) -> Source {
+            Source(
+                name: machine.name,
+                fetch: { tail in try await service.logs(id: machine.id, tail: tail) },
+                stream: { tail in service.streamLogs(id: machine.id, tail: tail) }
+            )
+        }
+    }
+
+    let source: Source
+
+    init(service: ContainerService, container: Container) {
+        source = .container(container, service: service)
+    }
+
+    init(source: Source) {
+        self.source = source
+    }
 
     @Environment(\.dismiss) private var dismiss
 
@@ -37,7 +69,7 @@ struct ContainerLogsView: View {
                 .foregroundStyle(.secondary)
             VStack(alignment: .leading, spacing: 1) {
                 Text("Logs").font(Theme.Typography.headline)
-                Text(container.name).font(Theme.Typography.monoCaption).foregroundStyle(.secondary)
+                Text(source.name).font(Theme.Typography.monoCaption).foregroundStyle(.secondary)
             }
             Spacer()
             Toggle("Follow", isOn: $follow)
@@ -115,11 +147,11 @@ struct ContainerLogsView: View {
         errorMessage = nil
         do {
             if follow {
-                for try await line in service.streamLogs(id: container.id, tail: 500) {
+                for try await line in source.stream(500) {
                     append(line)
                 }
             } else {
-                let text = try await service.logs(id: container.id, tail: 1000)
+                let text = try await source.fetch(1000)
                 lines = text
                     .split(separator: "\n", omittingEmptySubsequences: false)
                     .map { LogLine(text: String($0), isError: false) }

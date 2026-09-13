@@ -51,9 +51,9 @@ enum TerminalApp: String, CaseIterable, Identifiable, Sendable {
     }
 }
 
-/// Pure builders for the one-click container console: the interactive `exec`
-/// argv, the `.command` bootstrap script, and per-terminal launch arguments.
-/// Effectful launching lives in `ConsoleOpener` (App layer).
+/// Pure builders for the one-click console (containers and machines): the
+/// interactive argv, the `.command` bootstrap script, and per-terminal launch
+/// arguments. Effectful launching lives in `ConsoleOpener` (App layer).
 enum TerminalLauncher {
     /// Run inside the container: prefer bash, fall back to sh. Works on
     /// bash/dash/busybox images; `exec` keeps the shell as PID of the session.
@@ -76,15 +76,37 @@ enum TerminalLauncher {
         )
     }
 
-    /// The self-deleting `.command` bootstrap body. Self-delete at the top is
-    /// safe: the interpreting shell already holds the file open, and `exec`
-    /// replaces the process so nothing lingers after the session ends.
+    /// The interactive machine login shell (`container machine run -n <id>`),
+    /// as an argv array. Boots the machine first when it's stopped.
+    static func machineShellArgv(containerPath: String, id: String) -> [String] {
+        [containerPath] + MachineService.shellArguments(id: id)
+    }
+
+    /// The container console's `.command` bootstrap body.
     static func commandFileBody(containerPath: String, id: String, name: String) -> String {
-        let title = sanitizeForDisplay("container · \(name)")
-        let header = sanitizeForDisplay("Connecting to \(name) (\(String(id.prefix(12))))…")
-        let exec = execArgv(containerPath: containerPath, id: id)
-            .map(shellQuote)
-            .joined(separator: " ")
+        commandFileBody(
+            argv: execArgv(containerPath: containerPath, id: id),
+            title: "container · \(name)",
+            header: "Connecting to \(name) (\(String(id.prefix(12))))…"
+        )
+    }
+
+    /// The machine shell's `.command` bootstrap body.
+    static func machineCommandFileBody(containerPath: String, id: String) -> String {
+        commandFileBody(
+            argv: machineShellArgv(containerPath: containerPath, id: id),
+            title: "machine · \(id)",
+            header: "Opening a shell in \(id)… (boots the machine if it's stopped)"
+        )
+    }
+
+    /// A self-deleting `.command` bootstrap body for any argv. Self-delete at
+    /// the top is safe: the interpreting shell already holds the file open, and
+    /// `exec` replaces the process so nothing lingers after the session ends.
+    static func commandFileBody(argv: [String], title: String, header: String) -> String {
+        let title = sanitizeForDisplay(title)
+        let header = sanitizeForDisplay(header)
+        let exec = argv.map(shellQuote).joined(separator: " ")
         return """
         #!/bin/sh
         rm -f -- "$0"
