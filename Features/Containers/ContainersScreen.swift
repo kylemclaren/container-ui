@@ -89,6 +89,14 @@ struct ContainersScreen: View {
                 return
             }
             model.selectedID = id
+        case .cleanContainer(let id):
+            // Routed here (not run globally) so the row's busy marker and the
+            // error banner give feedback, e.g. on a CLI that predates `clean`.
+            guard let container = model.containers.first(where: { $0.id == id }) else {
+                if listLoaded { app.clearIntent() }
+                return
+            }
+            Task { await model.clean(container) }
         default:
             return
         }
@@ -154,6 +162,7 @@ struct ContainersScreen: View {
                             onStart: { Task { await model.start(container) } },
                             onStop: { Task { await model.stop(container) } },
                             onRestart: { Task { await model.restart(container) } },
+                            onClean: { Task { await model.clean(container) } },
                             onLogs: { logsTarget = container },
                             onKill: { Task { await model.kill(container) } },
                             onDelete: { deleteTarget = container }
@@ -172,7 +181,9 @@ struct ContainersScreen: View {
             ContainerDetailView(
                 container: container,
                 stats: model.statsByID[container.id],
-                statsPoints: model.history.points(for: container.id)
+                statsPoints: model.history.points(for: container.id),
+                isBusy: model.busyIDs.contains(container.id),
+                onClean: { Task { await model.clean(container) } }
             )
         } else {
             VStack(spacing: 10) {

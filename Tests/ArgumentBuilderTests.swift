@@ -65,6 +65,11 @@ struct ArgumentBuilderTests {
         #expect(ContainerService.pruneArguments() == ["prune"])
     }
 
+    @Test func containerClean() {
+        #expect(ContainerService.cleanArguments(ids: ["web"]) == ["clean", "web"])
+        #expect(ContainerService.cleanArguments(ids: ["web", "db"]) == ["clean", "web", "db"])
+    }
+
     @Test func images() {
         #expect(ImageService.listArguments() == ["image", "list", "--format", "json"])
         #expect(ImageService.inspectArguments(reference: "alpine") == ["image", "inspect", "alpine"])

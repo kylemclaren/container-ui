@@ -76,6 +76,24 @@ struct ContainerService: Sendable {
         ["prune"]
     }
 
+    /// `container clean` (1.4.1+): trims freed blocks on the root filesystem
+    /// and named volume mounts of *running* containers so the host reclaims
+    /// the space. Read-only roots and `ro` mounts are skipped by the CLI.
+    static func cleanArguments(ids: [String]) -> [String] {
+        ["clean"] + ids
+    }
+
+    /// Shown when the CLI predates `clean` (added in container 1.4.1).
+    static let cleanUnsupportedMessage = "Cleaning containers requires Apple container 1.4.1 or later."
+
+    /// An older CLI rejects the unknown `clean` subcommand with an
+    /// argument-parser usage error; surface that as a version requirement
+    /// instead of the raw parser text. Other errors describe themselves.
+    static func cleanErrorMessage(_ error: CLIError) -> String {
+        if case .usage = error { return cleanUnsupportedMessage }
+        return error.localizedDescription
+    }
+
     static func runArguments(_ options: RunOptions) -> [String] {
         var args = ["run"]
         if options.detach { args.append("--detach") }
@@ -159,5 +177,13 @@ struct ContainerService: Sendable {
     @discardableResult
     func prune() async throws -> String {
         try await cli.text(Self.pruneArguments())
+    }
+
+    /// Reclaims host disk space from running containers by trimming freed
+    /// blocks on their root filesystems and named volumes. Nothing is deleted.
+    /// Fails for stopped containers; returns the cleaned ids, one per line.
+    @discardableResult
+    func clean(ids: [String]) async throws -> String {
+        try await cli.text(Self.cleanArguments(ids: ids))
     }
 }

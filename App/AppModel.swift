@@ -176,7 +176,7 @@ final class AppModel {
             if let container = containers.first(where: { $0.id == id }) {
                 openConsole(container)
             }
-        case .runContainer, .containerLogs, .inspectContainer:
+        case .runContainer, .containerLogs, .inspectContainer, .cleanContainer:
             select(.containers)
             pendingIntent = intent
         case .pullImage, .buildImage, .runImage, .inspectImage:

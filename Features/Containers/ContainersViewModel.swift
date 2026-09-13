@@ -86,26 +86,39 @@ final class ContainersViewModel {
         await perform(container.id) { _ = try await self.service.kill(ids: [container.id]) }
     }
 
+    /// Trims freed blocks so the host reclaims disk space (running containers only).
+    func clean(_ container: Container) async {
+        await perform(container.id, describing: ContainerService.cleanErrorMessage) {
+            _ = try await self.service.clean(ids: [container.id])
+        }
+    }
+
     func delete(_ container: Container, force: Bool) async {
         await perform(container.id) { _ = try await self.service.delete(ids: [container.id], force: force) }
         if selectedID == container.id { selectedID = nil }
     }
 
-    private func perform(_ id: String, _ action: @escaping () async throws -> Void) async {
+    /// Runs a per-container action with a busy marker, then reloads.
+    /// `describing` customizes the user-facing message for a `CLIError`.
+    private func perform(
+        _ id: String,
+        describing describe: (CLIError) -> String = { $0.localizedDescription },
+        _ action: @escaping () async throws -> Void
+    ) async {
         busyIDs.insert(id)
         defer { busyIDs.remove(id) }
         do {
             try await action()
             await load()
         } catch let error as CLIError {
-            handle(error)
+            handle(error, message: describe(error))
         } catch {
             errorMessage = error.localizedDescription
         }
     }
 
-    private func handle(_ error: CLIError) {
-        errorMessage = error.localizedDescription
+    private func handle(_ error: CLIError, message: String? = nil) {
+        errorMessage = message ?? error.localizedDescription
         if error.isBackendUnavailable { isDaemonDown = true }
     }
 }
